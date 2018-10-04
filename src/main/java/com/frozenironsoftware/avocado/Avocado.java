@@ -5,6 +5,7 @@ import com.frozenironsoftware.avocado.util.AuthUtil;
 import com.frozenironsoftware.avocado.util.DatabaseUtil;
 import com.frozenironsoftware.avocado.util.Logger;
 import com.frozenironsoftware.avocado.data.Constants;
+import com.frozenironsoftware.avocado.util.api.PodcastHandler;
 import com.frozenironsoftware.avocado.util.api.UserHandler;
 import com.google.gson.Gson;
 
@@ -73,6 +74,12 @@ public class Avocado {
             path("/user", () -> {
                 get("", UserHandler::getInfo);
                 get("/create", UserHandler::createAnonymousUser);
+            });
+            // Podcasts
+            path("/podcasts", () -> {
+                get("/favorites", PodcastHandler::getFavorites);
+                get("/recents", PodcastHandler::getRecent);
+                get("/popular", PodcastHandler::getPopular);
             });
         });
     }
