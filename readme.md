@@ -111,3 +111,18 @@ Client IDs that are allowed to connect to the API
 Values: TRUE FALSE
 
 If set to true all http traffic will be redirected to the HTTPS variant of the URL
+
+### MQ_URL_ENV
+
+Optional
+
+Changes the environment variable name to use instead of MQ_URL.
+
+For example, if set to EXT_MQ_URL, the SQL URL will be pulled from EXT_SQL_URL instead of the default MQ_URL.
+
+### MQ_URL
+
+Message queue server URL
+
+This should be in the following format:
+ `amqp://<username>:<password>@<server>:<port>/<host>`

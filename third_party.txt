@@ -1,0 +1,608 @@
+The Twitched website/API may use or contain portions of the following libraries, subject to the below licenses.
+
+[OpenJDK]
+
+Licensed under the GNU General Public License, version 2, with the Classpath Exception
+
+[Spark]
+
+====
+Copyright 2011-2015 Per Wendel
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+====
+
+Questions about licensing should be directed to per.i.wendel@gmail.com.
+
+Third Party Contributions:
+
+APACHE SOFTWARE FOUNDATION
+
+This product includes software developed by the Apache Software Foundation which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* IOUtils.java. Copyright 2001-2008 The Apache Software Foundation
+
+Apache Commons IO
+Copyright 2001-2008 The Apache Software Foundation
+
+This product includes software developed by
+The Apache Software Foundation (http://www.apache.org/).
+
+CHRIS BEAMS
+This product includes software developed by Chris Beams which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* ObjectUtils.java. Copyright 2002-2013 Chris Beams
+
+SAM BRANNEN
+This product includes software developed by Sam Brannen which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* ClassPathResource.java. Copyright 2002-2012 Sam Brannen
+* ClassUtils.java. Copyright 2002-2014 Sam Brannen
+
+KEITH DONALD
+This product includes the following software developed by Keith Donald which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* Assert.java. Copyright 2002-2013 Keith Donald
+* ClassUtils.java. Copyright 2002-2014 Keith Donald
+* ObjectUtils.java. Copyright 2002-2013 Keith Donald
+* StringUtils.java. Copyright 2002-2013 Keith Donald
+
+RICK EVANS
+This product includes the following software developed by Rick Evans which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* StringUtils.java. Copyright 2002-2013 Rick Evans
+
+JUERGEN HOELLER
+This product includes the following software developed by Juergen Hoeller which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* AbstractFileResolvingResource.java. Copyright 2002-2013 Juergen Hoeller
+* AbstractResource.java. Copyright 2002-2010 Juergen Hoeller
+* Assert.java. Copyright 2002-2013 Juergen Hoeller
+* ClassPathResource.java. Copyright 2002-2012 Juergen Hoeller
+* ClassUtils.java. Copyright 2002-2014 Juergen Hoeller
+* CollectionUtils.java. Copyright 2002-2013 Juergen Hoeller
+* ObjectUtils.java. Copyright 2002-2013 Juergen Hoeller
+* InputStreamResource.java. Copyright 2002-2012 Juergen Hoeller
+* Resource.java. Copyright 2002-2012 Juergen Hoeller
+* ResourceUtils.java. Copyright 2002-2013 Juergen Hoeller
+* StringUtils.java. Copyright 2002-2013 Juergen Hoeller
+
+ROB HARROP
+This product includes the following software developed by Rob Harrop which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* Assert.java. Copyright 2002-2013 Rob Harrop
+* ClassUtils.java. Copyright 2002-2014 Rob Harrop
+* CollectionUtils.java. Copyright 2002-2013 Rob Harrop
+* ObjectUtils.java. Copyright 2002-2013 Rob Harrop
+* StringUtils.java. Copyright 2002-2013 Rob Harrop
+
+ROD JOHNSON
+This product includes the following software developed by Rod Johnson which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* ObjectUtils.java. Copyright 2002-2013 Rod Johnson
+* StringUtils.java. Copyright 2002-2013 Rod Johnson
+
+MORT BAY CONSULTING PTY. LTD.
+This product includes software developed by Mort Bay Consulting Pty. Ltd. which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0) and the Eclipse Public License, Version 1.0
+(http://www.eclipse.org/legal/epl-v10.html).
+
+* AbstractResourceHandler.java. Copyright 1995-2013 Mort Bay Consulting Pty. Ltd.
+* ClassPathResourceHandler.java. Copyright 1995-2013 Mort Bay Consulting Pty. Ltd.
+* ExternalResourceHandler.java. Copyright 1995-2013 Mort Bay Consulting Pty. Ltd.
+* UriPath.java. Copyright 1995-2013 Mort Bay Consulting Pty. Ltd.
+
+ARJEN POUTSMA
+This product includes the following software developed by Arjen Poutsma which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* CollectionUtils.java. Copyright 2002-2013 Arjen Poutsma
+* StringUtils.java. Copyright 2002-2013 Arjen Poutsma
+
+COLIN SAMPALEANU
+
+This product includes the following software developed by Colin Sampaleanu which is licensed under the terms of the
+Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+
+* Assert.java. Copyright 2002-2013 Colin Sampaleanu
+
+[Eclipse Jetty]
+
+==============================================================
+Jetty Web Container
+Copyright 1995-2017 Mort Bay Consulting Pty Ltd.
+==============================================================
+
+The Jetty Web Container is Copyright Mort Bay Consulting Pty Ltd
+unless otherwise noted.
+
+Jetty is dual licensed under both
+
+* The Apache 2.0 License
+http://www.apache.org/licenses/LICENSE-2.0.html
+
+and
+
+* The Eclipse Public 1.0 License
+http://www.eclipse.org/legal/epl-v10.html
+
+Jetty may be distributed under either license.
+
+------
+Eclipse
+
+The following artifacts are EPL.
+* org.eclipse.jetty.orbit:org.eclipse.jdt.core
+
+The following artifacts are EPL and ASL2.
+* org.eclipse.jetty.orbit:javax.security.auth.message
+
+
+The following artifacts are EPL and CDDL 1.0.
+* org.eclipse.jetty.orbit:javax.mail.glassfish
+
+
+------
+Oracle
+
+The following artifacts are CDDL + GPLv2 with classpath exception.
+https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html
+
+* javax.servlet:javax.servlet-api
+* javax.annotation:javax.annotation-api
+* javax.transaction:javax.transaction-api
+* javax.websocket:javax.websocket-api
+
+------
+Oracle OpenJDK
+
+If ALPN is used to negotiate HTTP/2 connections, then the following
+artifacts may be included in the distribution or downloaded when ALPN
+module is selected.
+
+* java.sun.security.ssl
+
+These artifacts replace/modify OpenJDK classes.  The modififications
+are hosted at github and both modified and original are under GPL v2 with
+classpath exceptions.
+http://openjdk.java.net/legal/gplv2+ce.html
+
+
+------
+OW2
+
+The following artifacts are licensed by the OW2 Foundation according to the
+terms of http://asm.ow2.org/license.html
+
+org.ow2.asm:asm-commons
+org.ow2.asm:asm
+
+
+------
+Apache
+
+The following artifacts are ASL2 licensed.
+
+org.apache.taglibs:taglibs-standard-spec
+org.apache.taglibs:taglibs-standard-impl
+
+
+------
+MortBay
+
+The following artifacts are ASL2 licensed.  Based on selected classes from
+following Apache Tomcat jars, all ASL2 licensed.
+
+org.mortbay.jasper:apache-jsp
+org.apache.tomcat:tomcat-jasper
+org.apache.tomcat:tomcat-juli
+org.apache.tomcat:tomcat-jsp-api
+org.apache.tomcat:tomcat-el-api
+org.apache.tomcat:tomcat-jasper-el
+org.apache.tomcat:tomcat-api
+org.apache.tomcat:tomcat-util-scan
+org.apache.tomcat:tomcat-util
+
+org.mortbay.jasper:apache-el
+org.apache.tomcat:tomcat-jasper-el
+org.apache.tomcat:tomcat-el-api
+
+
+------
+Mortbay
+
+The following artifacts are CDDL + GPLv2 with classpath exception.
+
+https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html
+
+org.eclipse.jetty.toolchain:jetty-schemas
+
+------
+Assorted
+
+The UnixCrypt.java code implements the one way cryptography used by
+Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
+modified April 2001  by Iris Van den Broeke, Daniel Deville.
+Permission to use, copy, modify and distribute UnixCrypt
+for non-commercial or commercial purposes and without fee is
+granted provided that the copyright notice appears in all copies.
+
+[Rhino]
+
+Rhino is licensed subject to the terms of the Mozilla Public License, v. 2.0.
+See "License.txt" for the text of the license.
+
+Rhino contains the following additional software:
+
+----
+
+Portions of the floating-point conversion code, and portions of the test suite
+come from the Google V8 JavaScript engine and are subject to the following:
+
+Copyright 2010-2015 the V8 project authors. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following
+disclaimer in the documentation and/or other materials provided
+with the distribution.
+* Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived
+from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+[Spark Template Handlebars]
+
+Copyright 2014
+
+Licensed under the Apache License, Version 2.0
+
+[Handlebars.java]
+
+Copyright (c) 2012-2015 Edgar Espina
+
+This file is part of Handlebars.java.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+[ANTLR v4]
+
+The "BSD 3-clause license"
+Copyright (c) 2012-2017 The ANTLR Project. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+=====
+
+MIT License for codepointat.js from https://git.io/codepointat
+MIT License for fromcodepoint.js from https://git.io/vDW1m
+
+Copyright Mathias Bynens <https://mathiasbynens.be/>
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[Guava]
+
+Copyright (C) 2012 The Guava Authors
+
+Licensed under the Apache License, Version 2.0
+
+[Jedis]
+
+Copyright (c) 2010 Jonathan Leibiusky
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+[Apache Commons Pool]
+
+Apache Commons Pool
+Copyright 2001-2017 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+[Apache Commons Lang]
+
+Apache Commons Lang
+Copyright 2001-2017 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This product includes software from the Spring Framework,
+under the Apache License 2.0 (see: StringUtils.containsWhitespace())
+
+[Gson]
+
+Copyright 2008 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+[DavidWebb]
+
+The MIT License (MIT)
+
+Copyright (c) 2013 Heinrich Goebl
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[JSON in Java (package org.json)]
+
+Copyright (c) 2002 JSON.org
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+The Software shall be used for Good, not Evil.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+[SLF4J]
+
+Copyright (c) 2004-2017 QOS.ch
+All rights reserved.
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense, and/or sell  copies of  the Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following conditions:
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[IntelliJ IDEA Annotations]
+
+Licensed under the Apache License, Version 2.0
+
+[ComparableVersion.java]
+
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+
+[Sql2o]
+
+Copyright (c) 2011 Lars Aaberg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[PostgreSQL JDBC Driver]
+
+Copyright (c) 1997, PostgreSQL Global Development Group
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+[jBCrypt]
+
+Copyright (c) 2006 Damien Miller <djm@mindrot.org>
+
+Permission to use, copy, modify, and distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+[RabbitMQ Java Client]
+
+Licensed under the Apache License, Version 2.0
+
+This package, the RabbitMQ Java client library, is triple-licensed under
+the Mozilla Public License 1.1 ("MPL"), the GNU General Public License
+version 2 ("GPL") and the Apache License version 2 ("ASL"). For the MPL,
+please see LICENSE-MPL-RabbitMQ. For the GPL, please see LICENSE-GPL2.
+For the ASL, please see LICENSE-APACHE2.
+
+The RabbitMQ Java client library includes third-party software under the
+ASL. For this license, please see LICENSE-APACHE2. For attribution of
+copyright and other details of provenance, please refer to the source code.
+
+If you have any questions regarding licensing, please contact us at
+info@rabbitmq.com.
+
+[rabbitmq-codegen]
+
+This package, the RabbitMQ code generation library and associated
+files, is licensed under the MPL.
+
+The files amqp-rabbitmq-0.8.json and amqp-rabbitmq-0.9.1.json are
+"Copyright (C) 2008-2016 Pivotal Software, Inc", Inc. and are covered by the MIT
+license.

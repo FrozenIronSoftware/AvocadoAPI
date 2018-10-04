@@ -1,2 +1,5 @@
 rootProject.name = 'avocado'
+include 'cacher', 'server'
+findProject(':cacher')?.name = 'cacher'
+findProject(':server')?.name = 'server'
 
