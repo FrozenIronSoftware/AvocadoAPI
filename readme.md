@@ -126,3 +126,9 @@ Message queue server URL
 
 This should be in the following format:
  `amqp://<username>:<password>@<server>:<port>/<host>`
+ 
+### MQ_SECURE
+
+Values: TRUE FALSE
+
+Should the MQ connection use TLS

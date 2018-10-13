@@ -20,7 +20,7 @@ public class Logger {
 
     static {
         Level level = Level.INFO;
-        logger = java.util.logging.Logger.getLogger("TWITCH");
+        logger = java.util.logging.Logger.getLogger("AVOCADO");
         logger.setLevel(level);
         logger.setUseParentHandlers(false);
         consoleHandler = new ConsoleHandler();

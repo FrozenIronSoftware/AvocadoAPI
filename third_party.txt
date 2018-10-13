@@ -606,3 +606,7 @@ files, is licensed under the MPL.
 The files amqp-rabbitmq-0.8.json and amqp-rabbitmq-0.9.1.json are
 "Copyright (C) 2008-2016 Pivotal Software, Inc", Inc. and are covered by the MIT
 license.
+
+[Guava: Google Core Libraries for Java]
+
+Licensed under the Apache License, Version 2.0

@@ -32,7 +32,7 @@ public class Avocado {
             AuthUtil.setAuthenticate(false);
         // Init logger
         Logger.setLevel(Level.parse(logLevel));
-        Logger.info("Starting Avocado %s", Constants.VERSION);
+        Logger.info("Starting %s %s", Constants.NAME, Constants.VERSION);
         // Parse port
         int port = 5000;
         String portString = System.getenv("PORT");
@@ -44,29 +44,11 @@ public class Avocado {
             Logger.warn("Failed to parse PORT env var: %s", portString);
         }
         // Redis address
-        String redisUrlEnv = System.getenv("REDIS_URL_ENV");
-        String redisUrlEnvName = redisUrlEnv == null || redisUrlEnv.isEmpty() ? "REDIS_URL" : redisUrlEnv;
-        String redisServer = System.getenv(redisUrlEnvName);
-        if (redisServer == null || redisServer.isEmpty()) {
-            Logger.warn("Missing env: %s", redisUrlEnvName);
-            System.exit(1);
-        }
+        String redisServer = getRedisServer();
         // SQL address
-        String sqlUrlEnv = System.getenv("SQL_URL_ENV");
-        String sqlUrlEnvName = sqlUrlEnv == null || sqlUrlEnv.isEmpty() ? "SQL_URL" : sqlUrlEnv;
-        String sqlServer = System.getenv(sqlUrlEnvName);
-        if (sqlServer == null || sqlServer.isEmpty()) {
-            Logger.warn("Missing env: %s", sqlUrlEnvName);
-            System.exit(1);
-        }
+        String sqlServer = getSqlServer();
         // MQ address
-        String mqUrlEnv = System.getenv("MQ_URL_ENV");
-        String mqUrlEnvName = mqUrlEnv == null || mqUrlEnv.isEmpty() ? "MQ_URL" : mqUrlEnv;
-        String mqServer = System.getenv(mqUrlEnvName);
-        if (mqServer == null || mqServer.isEmpty()) {
-            Logger.warn("Missing env: %s", mqUrlEnvName);
-            System.exit(1);
-        }
+        String mqServer = getMqServer();
         // Redirect
         redirectToHttps = Boolean.parseBoolean(System.getenv().getOrDefault("REDIRECT_HTTP", "true"));
         // Set values
@@ -93,5 +75,52 @@ public class Avocado {
                 get("/popular", PodcastHandler::getPopular);
             });
         });
+    }
+
+    /**
+     * Fetch the sql server url
+     * @return url string
+     */
+    public static String getSqlServer() {
+        String sqlUrlEnv = System.getenv("SQL_URL_ENV");
+        String sqlUrlEnvName = sqlUrlEnv == null || sqlUrlEnv.isEmpty() ? "SQL_URL" : sqlUrlEnv;
+        String sqlServer = System.getenv(sqlUrlEnvName);
+        if (sqlServer == null || sqlServer.isEmpty()) {
+            Logger.warn("Missing env: %s", sqlUrlEnvName);
+            System.exit(1);
+        }
+        return sqlServer;
+    }
+
+    /**
+     * Fetch the redis server url
+     * @return url string
+     */
+    public static String getRedisServer() {
+        String redisUrlEnv = System.getenv("REDIS_URL_ENV");
+        String redisUrlEnvName = redisUrlEnv == null || redisUrlEnv.isEmpty() ? "REDIS_URL" : redisUrlEnv;
+        String redisServer = System.getenv(redisUrlEnvName);
+        if (redisServer == null || redisServer.isEmpty()) {
+            Logger.warn("Missing env: %s", redisUrlEnvName);
+            System.exit(1);
+        }
+        return redisServer;
+    }
+
+    /**
+     * Fetch the MQ server URL
+     * @return MQ server URL
+     */
+    public static String getMqServer() {
+        String mqUrlEnv = System.getenv("MQ_URL_ENV");
+        String mqUrlEnvName = mqUrlEnv == null || mqUrlEnv.isEmpty() ? "MQ_URL" : mqUrlEnv;
+        String mqServer = System.getenv(mqUrlEnvName);
+        if (mqServer == null || mqServer.isEmpty()) {
+            Logger.warn("Missing env: %s", mqUrlEnvName);
+            System.exit(1);
+        }
+        if (Boolean.parseBoolean(System.getenv().getOrDefault("MQ_SECURE", "true")))
+            mqServer = mqServer.replace("amqp://", "amqps://");
+        return mqServer;
     }
 }

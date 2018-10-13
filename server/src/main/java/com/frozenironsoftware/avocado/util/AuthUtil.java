@@ -15,6 +15,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.sql2o.Connection;
 import org.sql2o.Sql2oException;
 import spark.Request;
+import spark.Session;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,24 +72,6 @@ public class AuthUtil {
     }
 
     /**
-     * Extract a Twitch token from a request.
-     * Checks the headers first, then falls back to the queries
-     * @param request request
-     * @return token if found
-     */
-    @Nullable
-    public static String extractTwitchToken(Request request) {
-        String token = request.headers("Twitch-Token");
-        // This is here to support versions that use the query param.
-        // New versions should not use this as it is a security risk when the request URL is logged.
-        if (token == null || token.isEmpty())
-            token = request.queryParams("token");
-        if (token == null || token.isEmpty())
-            return null;
-        return token;
-    }
-
-    /**
      * Hash a string with SHA1 and the specified salt
      * @param raw raw string
      * @param salt salt - the global salt will be used if this is null
@@ -115,10 +98,16 @@ public class AuthUtil {
     /**
      * Check a basic authentication header against user password and app tokens
      * @param request request
+     * @return user id
      */
     public static long checkAuth(Request request) {
         if (!verifyClientId(request))
             throw halt(HttpStatus.UNAUTHORIZED_401);
+        // Check if a session exists
+        Session session = request.session(false);
+        if (session != null && session.attribute("user_id") != null)
+            return StringUtil.parseLong(session.attribute("user_id"));
+        // Check auth with Authorization header
         String authorizationHeader = request.headers("Authorization");
         if (authorizationHeader == null || !authorizationHeader.startsWith("Basic"))
             throw halt(HttpStatus.BAD_REQUEST_400);
@@ -131,6 +120,9 @@ public class AuthUtil {
         String password = usernamePasswordSplit[1];
         if (!(checkPassword(username, password) || checkAppToken(username, password)))
             throw halt(HttpStatus.UNAUTHORIZED_401);
+        // Create a session
+        session = request.session(true);
+        session.attribute("user_id", username);
         return StringUtil.parseLong(username);
     }
 

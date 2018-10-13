@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 public class ApiCache {
-    private static final int TIMEOUT = 60 * 10; // Seconds before a cache value should be considered invalid
     public static final int TIMEOUT_HOUR = 60 * 60;
     public static final int TIMEOUT_DAY = 24 * 60 * 60; // 1 Day
+    private static final int TIMEOUT = TIMEOUT_HOUR * 12; // Seconds before a cache value should be considered invalid
     private final String redisPassword;
     private final Gson gson;
     private JedisPool redisPool;

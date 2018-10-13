@@ -29,6 +29,7 @@ allprojects {
         postgresqlVersion = "42.2.2"
         jbcryptVersion = "0.4"
         rabbitmqVersion = "5.4.2"
+        junitVersion = "4.12"
     }
 
     repositories {
@@ -53,6 +54,7 @@ project(":server") {
         compile "org.postgresql:postgresql:$postgresqlVersion"
         compile "org.mindrot:jbcrypt:$jbcryptVersion"
         compile "com.rabbitmq:amqp-client:$rabbitmqVersion"
+        testCompile "junit:junit:$junitVersion"
     }
 }
 
