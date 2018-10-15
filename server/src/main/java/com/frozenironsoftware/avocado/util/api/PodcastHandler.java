@@ -10,6 +10,7 @@ import com.frozenironsoftware.avocado.util.MessageQueue;
 import com.frozenironsoftware.avocado.util.StringUtil;
 import com.rabbitmq.client.DefaultConsumer;
 import org.eclipse.jetty.http.HttpStatus;
+import spark.HaltException;
 import spark.Request;
 import spark.Response;
 
@@ -28,6 +29,7 @@ public class PodcastHandler {
         int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
                 String.valueOf(DefaultConfig.ITEM_LIMIT)));
         long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
+        checkLimitAndOffset(limit, offset);
         // Queue cache update
         UserIdLimitedOffsetRequest userIdLimitedOffsetRequest = new UserIdLimitedOffsetRequest(userId, limit, offset);
         Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_FAVORITE_PODCASTS, userIdLimitedOffsetRequest);
@@ -50,6 +52,7 @@ public class PodcastHandler {
         int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
                 String.valueOf(DefaultConfig.ITEM_LIMIT)));
         long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
+        checkLimitAndOffset(limit, offset);
         // Queue cache update
         UserIdLimitedOffsetRequest userIdLimitedOffsetRequest = new UserIdLimitedOffsetRequest(userId, limit, offset);
         Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_RECENT_PODCASTS, userIdLimitedOffsetRequest);
@@ -73,6 +76,7 @@ public class PodcastHandler {
         int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
                 String.valueOf(DefaultConfig.ITEM_LIMIT)));
         long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
+        checkLimitAndOffset(limit, offset);
         // Queue cache update
         LimitedOffsetRequest limitedOffsetRequest = new LimitedOffsetRequest(limit, offset);
         Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_POPULAR_PODCASTS, limitedOffsetRequest);
@@ -82,5 +86,18 @@ public class PodcastHandler {
         if (cachedData == null)
             return "[]";
         return cachedData;
+    }
+
+    /**
+     * Ensure the limit and offset are within the limits
+     * @param limit limit
+     * @param offset offset
+     * @throws HaltException 404 bad request if arguments are not within bounds
+     */
+    private static void checkLimitAndOffset(int limit, long offset) throws HaltException {
+        if (limit < 1 || limit > DefaultConfig.ITEM_LIMIT)
+            throw halt(HttpStatus.BAD_REQUEST_400, "{\"error\": \"Limit out of bounds\"}");
+        if (offset < 0 || offset > DefaultConfig.MAX_OFFSET)
+            throw halt(HttpStatus.BAD_REQUEST_400, "{\"error\": \"Offset out of bounds\"}");
     }
 }

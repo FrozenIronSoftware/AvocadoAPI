@@ -9,6 +9,7 @@ import com.frozenironsoftware.avocado.data.model.Podcast;
 import com.frozenironsoftware.avocado.data.model.PodcastPlay;
 import com.frozenironsoftware.avocado.data.model.UserFavorite;
 import com.frozenironsoftware.avocado.data.model.UserIdLimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.UserRecent;
 import com.frozenironsoftware.avocado.util.ApiCache;
 import com.frozenironsoftware.avocado.util.DatabaseUtil;
 import com.frozenironsoftware.avocado.util.Logger;
@@ -28,6 +29,8 @@ class PodcastApiCacheUpdater {
      * @param userIdLimitedOffsetRequest user id offset and limit
      */
     static void updateUserFavoritePodcastCache(UserIdLimitedOffsetRequest userIdLimitedOffsetRequest) {
+        if (!checkLimitAndOffset(userIdLimitedOffsetRequest))
+            return;
         List<Podcast> podcasts = getUserFavoritePodcastsOrderedByUnwatched(userIdLimitedOffsetRequest.getUserId(),
                 userIdLimitedOffsetRequest.getLimit(), userIdLimitedOffsetRequest.getOffset());
         if (podcasts != null) {
@@ -35,6 +38,36 @@ class PodcastApiCacheUpdater {
                     userIdLimitedOffsetRequest.getLimit(), userIdLimitedOffsetRequest.getOffset());
             Cacher.cache.set(cacheId, Avocado.gson.toJson(podcasts));
         }
+    }
+
+    /**
+     * Ensure the limit and offset are within the limits
+     * @param userIdLimitedOffsetRequest user id limited offset request
+     * @return is the limit and offset within range
+     */
+    private static boolean checkLimitAndOffset(UserIdLimitedOffsetRequest userIdLimitedOffsetRequest) {
+        return checkLimitAndOffset(userIdLimitedOffsetRequest.getLimit(), userIdLimitedOffsetRequest.getOffset());
+    }
+
+    /**
+     * Ensure the limit and offset are within the limits
+     * @param limitedOffsetRequest limit and offset
+     * @return within range
+     */
+    private static boolean checkLimitAndOffset(LimitedOffsetRequest limitedOffsetRequest) {
+        return checkLimitAndOffset(limitedOffsetRequest.getLimit(), limitedOffsetRequest.getOffset());
+    }
+
+    /**
+     * Ensure the limit and offset are within the limits
+     * @param limit limit
+     * @param offset offset
+     * @return if limit and offset within range
+     */
+    private static boolean checkLimitAndOffset(int limit, long offset) {
+        if (limit < 1 || limit > DefaultConfig.ITEM_LIMIT)
+            return false;
+        return offset >= 0 && offset <= DefaultConfig.MAX_OFFSET;
     }
 
     /**
@@ -46,7 +79,7 @@ class PodcastApiCacheUpdater {
      */
     @Nullable
     private static List<Podcast> getUserFavoritePodcastsOrderedByUnwatched(long userId, int limit, long offset) {
-        String sqlAllFavorites = "select * from %s.user_favorites where user_id = :user_id limit :limit;";
+        String sqlAllFavorites = "select * from %s.user_favorites where user_id = :user_id;";
         sqlAllFavorites = String.format(sqlAllFavorites, DatabaseUtil.schema);
         StringBuilder sqlPlayed = new StringBuilder("select * from %s.user_plays where user_id = :user_id and (");
         StringBuilder sqlEpisodes = new StringBuilder("select * from %s.episodes where ");
@@ -147,8 +180,74 @@ class PodcastApiCacheUpdater {
         }
     }
 
+    /**
+     * Update user recent podcasts cache
+     * @param userIdLimitedOffsetRequest params
+     */
     static void updateUserRecentPodcastCache(UserIdLimitedOffsetRequest userIdLimitedOffsetRequest) {
+        List<Podcast> podcasts = getUserRecentPodcasts(userIdLimitedOffsetRequest.getUserId(),
+                userIdLimitedOffsetRequest.getLimit(), userIdLimitedOffsetRequest.getOffset());
+        if (podcasts != null) {
+            String cacheId = ApiCache.createKey("podcasts/recents", userIdLimitedOffsetRequest.getUserId(),
+                    userIdLimitedOffsetRequest.getLimit(), userIdLimitedOffsetRequest.getOffset());
+            Cacher.cache.set(cacheId, Avocado.gson.toJson(podcasts));
+        }
+    }
 
+    /**
+     * Poll database for user recent podcasts
+     * @param userId user id
+     * @param limit result limit
+     * @param offset result offset
+     * @return podcasts
+     */
+    @Nullable
+    private static List<Podcast> getUserRecentPodcasts(long userId, int limit, long offset) {
+        String sqlRecents = "select * from %s.user_recents where user_id = :user_id order by added desc limit :limit" +
+                " offset :offset rows;";
+        sqlRecents = String.format(sqlRecents, DatabaseUtil.schema);
+        StringBuilder sqlPodcasts = new StringBuilder("select * from %s.podcasts where ");
+        Connection connection = null;
+        try {
+            connection = DatabaseUtil.getTransaction();
+            List<UserRecent> userRecents = connection.createQuery(sqlRecents)
+                    .addParameter("user_id", userId)
+                    .addParameter("limit", limit)
+                    .addParameter("offset", offset)
+                    .addColumnMapping("user_id", "userId")
+                    .addColumnMapping("podcast_id", "podcastId")
+                    .executeAndFetch(UserRecent.class);
+            if (userRecents.size() == 0) {
+                connection.commit();
+                DatabaseUtil.releaseConnection(connection);
+                return null;
+            }
+            List<Long> podcastIds = new ArrayList<>();
+            for (int userRecentIndex = 1; userRecentIndex <= userRecents.size(); userRecentIndex++) {
+                long podcastId = userRecents.get(userRecentIndex - 1).getPodcastId();
+                podcastIds.add(podcastId);
+                sqlPodcasts.append("id = :p").append(userRecentIndex);
+                if (userRecentIndex > 1 && userRecentIndex < userRecents.size()) {
+                    sqlPodcasts.append(" or ");
+                }
+                if (userRecentIndex == userRecents.size()) {
+                    sqlPodcasts.append("limit :limit offset by :offset rows;");
+                }
+            }
+            List<Podcast> podcasts = connection.createQuery(String.format(sqlPodcasts.toString(), DatabaseUtil.schema))
+                    .withParams(podcastIds.toArray())
+                    .addParameter("limit", limit)
+                    .addParameter("offset", offset)
+                    .executeAndFetch(Podcast.class);
+            connection.commit();
+            DatabaseUtil.releaseConnection(connection);
+            return podcasts;
+        }
+        catch (Sql2oException e) {
+            Logger.exception(e);
+            DatabaseUtil.releaseConnection(connection);
+            return null;
+        }
     }
 
     /**
@@ -156,6 +255,8 @@ class PodcastApiCacheUpdater {
      * @param limitedOffsetRequest limit and offset
      */
     static void updatePopularPodcastCache(LimitedOffsetRequest limitedOffsetRequest) {
+        if (!checkLimitAndOffset(limitedOffsetRequest))
+            return;
         List<Podcast> podcasts = getPopularPodcastsFromDatabase(limitedOffsetRequest.getLimit(),
                 limitedOffsetRequest.getOffset());
         if (podcasts != null) {
