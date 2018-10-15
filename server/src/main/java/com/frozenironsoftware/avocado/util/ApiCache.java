@@ -10,7 +10,9 @@ import org.jetbrains.annotations.Nullable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Protocol;
+import redis.clients.jedis.Transaction;
 import redis.clients.util.JedisURIHelper;
 
 import java.net.URI;
@@ -23,6 +25,7 @@ public class ApiCache {
     public static final int TIMEOUT_HOUR = 60 * 60;
     public static final int TIMEOUT_DAY = 24 * 60 * 60; // 1 Day
     private static final int TIMEOUT = TIMEOUT_HOUR * 12; // Seconds before a cache value should be considered invalid
+    public static final String PREFIX_PODCAST = "_p";
     private final String redisPassword;
     private final Gson gson;
     private JedisPool redisPool;
@@ -120,7 +123,7 @@ public class ApiCache {
      * @param keys keys to get
      * @return map with redis keys as the key and possibly null value if key did not exist
      */
-    private Map<String, String> mgetWithPrefix(String keyPrefix, List<String> keys) {
+    public Map<String, String> mgetWithPrefix(String keyPrefix, List<String> keys) {
         Map<String, String> map = new HashMap<>();
         String[] prefixedKeys = new String[keys.size()];
         for (int keyIndex = 0; keyIndex < keys.size(); keyIndex++)
@@ -166,5 +169,40 @@ public class ApiCache {
      */
     private Map<String, String> mget(List<String> keys) {
         return mgetWithPrefix("", keys);
+    }
+
+    /**
+     * Set multiple keys with a common prefix
+     * @param prefix keys prefix
+     * @param keysValues key values
+     * @param timeout key expire time
+     */
+    public void msetWithPrefix(String prefix, Map<String, String> keysValues, int timeout) {
+        List<String> keysValuesList = new ArrayList<>();
+        for (Map.Entry<String, String> entry : keysValues.entrySet()) {
+            keysValuesList.add(prefix + entry.getKey());
+            keysValuesList.add(entry.getValue());
+        }
+        try (Jedis redis = getAuthenticatedJedis()) {
+            redis.mset(keysValuesList.toArray(new String[0]));
+            Pipeline pipeline = redis.pipelined();
+            pipeline.multi();
+            for (String key : keysValues.keySet()) {
+                pipeline.expire(prefix + key, timeout);
+            }
+            pipeline.exec();
+            pipeline.close();
+        }
+        catch (Exception e) {
+            Logger.exception(e);
+        }
+    }
+
+    /**
+     * Set multiple keys with a common prefix and default timeout
+     * @see #msetWithPrefix(String, Map, int)
+     */
+    public void msetWithPrefix(String prefix, Map<String, String> keysValues) {
+        msetWithPrefix(prefix, keysValues, TIMEOUT);
     }
 }

@@ -1,4 +1,4 @@
-package com.frozenironsoftware.avocado.data.model;
+package com.frozenironsoftware.avocado.data.model.bytes;
 
 import java.nio.ByteBuffer;
 

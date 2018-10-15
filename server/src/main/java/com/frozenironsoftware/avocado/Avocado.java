@@ -70,6 +70,7 @@ public class Avocado {
             });
             // Podcasts
             path("/podcasts", () -> {
+                get("", PodcastHandler::getPodcasts);
                 get("/favorites", PodcastHandler::getFavorites);
                 get("/recents", PodcastHandler::getRecent);
                 get("/popular", PodcastHandler::getPopular);

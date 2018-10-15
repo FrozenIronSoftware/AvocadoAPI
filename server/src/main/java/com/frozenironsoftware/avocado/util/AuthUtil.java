@@ -13,7 +13,6 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.jetbrains.annotations.Nullable;
 import org.mindrot.jbcrypt.BCrypt;
 import org.sql2o.Connection;
-import org.sql2o.Sql2oException;
 import spark.Request;
 import spark.Session;
 
@@ -149,7 +148,7 @@ public class AuthUtil {
             }
             return false;
         }
-        catch (Sql2oException e) {
+        catch (Exception e) {
             Logger.exception(e);
             DatabaseUtil.releaseConnection(connection);
             return false;

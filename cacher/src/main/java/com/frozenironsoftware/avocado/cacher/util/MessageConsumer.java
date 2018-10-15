@@ -1,7 +1,8 @@
 package com.frozenironsoftware.avocado.cacher.util;
 
-import com.frozenironsoftware.avocado.data.model.LimitedOffsetRequest;
-import com.frozenironsoftware.avocado.data.model.UserIdLimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.util.Logger;
 import com.frozenironsoftware.avocado.util.MessageQueue;
 import com.rabbitmq.client.AMQP;
@@ -35,6 +36,11 @@ public class MessageConsumer extends DefaultConsumer {
                     case GET_POPULAR_PODCASTS:
                         PodcastApiCacheUpdater.updatePopularPodcastCache(new LimitedOffsetRequest(body));
                         break;
+                    case GET_PODCASTS:
+                        PodcastApiCacheUpdater.updatePodcastsCache(new StringArrayRequest(body));
+                        break;
+                    default:
+                        Logger.warn("Unhandled message: %s", type.name());
                 }
             }
             catch (Exception e) {

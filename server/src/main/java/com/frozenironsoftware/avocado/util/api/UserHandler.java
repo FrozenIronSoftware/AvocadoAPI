@@ -5,14 +5,12 @@ import com.frozenironsoftware.avocado.data.User;
 import com.frozenironsoftware.avocado.util.AuthUtil;
 import com.frozenironsoftware.avocado.util.DatabaseUtil;
 import com.frozenironsoftware.avocado.util.Logger;
-import com.frozenironsoftware.avocado.util.StringUtil;
 import com.google.common.hash.Hashing;
 import com.google.gson.JsonObject;
 import org.eclipse.jetty.http.HttpStatus;
 import org.jetbrains.annotations.Nullable;
 import org.mindrot.jbcrypt.BCrypt;
 import org.sql2o.Connection;
-import org.sql2o.Sql2oException;
 import spark.Request;
 import spark.Response;
 
@@ -83,7 +81,7 @@ public class UserHandler {
             appToken.tokenPlain = token;
             return appToken;
         }
-        catch (Sql2oException e) {
+        catch (Exception e) {
             Logger.exception(e);
             DatabaseUtil.releaseConnection(connection);
             return null;
@@ -109,7 +107,7 @@ public class UserHandler {
             DatabaseUtil.releaseConnection(connection);
             return new User(id, User.AccountLevel.ANONYMOUS, "");
         }
-        catch (Sql2oException e) {
+        catch (Exception e) {
             Logger.exception(e);
             DatabaseUtil.releaseConnection(connection);
             return null;
@@ -144,7 +142,7 @@ public class UserHandler {
             ret.addProperty("id", user.id);
             return ret.toString();
         }
-        catch (Sql2oException e) {
+        catch (Exception e) {
             Logger.exception(e);
             DatabaseUtil.releaseConnection(connection);
             ret.addProperty("error", true);

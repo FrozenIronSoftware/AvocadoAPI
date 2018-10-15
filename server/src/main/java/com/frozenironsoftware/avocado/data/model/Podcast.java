@@ -10,6 +10,7 @@ public class Podcast {
     private long plays;
     @SerializedName("unplayed_episodes")
     private int unplayedEpisodes;
+    private int episodes;
 
     public long getId() {
         return id;
@@ -57,5 +58,13 @@ public class Podcast {
 
     public int getUnplayedEpisodes() {
         return unplayedEpisodes;
+    }
+
+    public void setEpisodes(int episodes) {
+        this.episodes = episodes;
+    }
+
+    public int getEpisodes() {
+        return episodes;
     }
 }

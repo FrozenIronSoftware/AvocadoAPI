@@ -1,6 +1,6 @@
 package com.frozenironsoftware.avocado.util;
 
-import com.frozenironsoftware.avocado.data.model.ByteSerializable;
+import com.frozenironsoftware.avocado.data.model.bytes.ByteSerializable;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
@@ -83,6 +83,6 @@ public class MessageQueue {
     }
 
     public enum TYPE {
-        GET_FAVORITE_PODCASTS, GET_RECENT_PODCASTS, GET_POPULAR_PODCASTS
+        GET_FAVORITE_PODCASTS, GET_RECENT_PODCASTS, GET_POPULAR_PODCASTS, GET_PODCASTS
     }
 }

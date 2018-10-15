@@ -4,18 +4,19 @@ import com.frozenironsoftware.avocado.Avocado;
 import com.frozenironsoftware.avocado.cacher.Cacher;
 import com.frozenironsoftware.avocado.data.DefaultConfig;
 import com.frozenironsoftware.avocado.data.model.Episode;
-import com.frozenironsoftware.avocado.data.model.LimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.Podcast;
 import com.frozenironsoftware.avocado.data.model.PodcastPlay;
 import com.frozenironsoftware.avocado.data.model.UserFavorite;
-import com.frozenironsoftware.avocado.data.model.UserIdLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.UserRecent;
+import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.util.ApiCache;
 import com.frozenironsoftware.avocado.util.DatabaseUtil;
 import com.frozenironsoftware.avocado.util.Logger;
+import com.google.gson.JsonSyntaxException;
 import org.jetbrains.annotations.Nullable;
 import org.sql2o.Connection;
-import org.sql2o.Sql2oException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,7 +91,6 @@ class PodcastApiCacheUpdater {
             // Get favorite podcast ids
             List<UserFavorite> favoritePodcasts = connection.createQuery(sqlAllFavorites)
                     .addParameter("user_id", userId)
-                    .addParameter("limit", DefaultConfig.MAX_USER_PODCAST_FAVORITES)
                     .addColumnMapping("date_favorited", "dateFavorited")
                     .addColumnMapping("user_id", "userId")
                     .addColumnMapping("podcast_id", "podcastId")
@@ -103,12 +103,12 @@ class PodcastApiCacheUpdater {
             // Finish SQL queries with favorite podcast ids
             List<Long> favoriteIds = new ArrayList<>();
             for (int paramIndex = 1; paramIndex <= favoritePodcasts.size(); paramIndex++) {
-                long podcastId = favoritePodcasts.get(paramIndex - 1).getId();
+                long podcastId = favoritePodcasts.get(paramIndex - 1).getPodcastId();
                 favoriteIds.add(podcastId);
                 sqlPlayed.append("podcast_id = :p").append(paramIndex);
                 sqlEpisodes.append("podcast_id = :p").append(paramIndex);
                 sqlPodcasts.append("id = :p").append(paramIndex);
-                if (paramIndex > 1 && paramIndex < favoritePodcasts.size()) {
+                if (paramIndex < favoritePodcasts.size()) {
                     sqlPlayed.append(" or ");
                     sqlEpisodes.append(" or ");
                     sqlPodcasts.append(" or ");
@@ -173,7 +173,7 @@ class PodcastApiCacheUpdater {
             }
             return favorites;
         }
-        catch (Sql2oException e) {
+        catch (Exception e) {
             Logger.exception(e);
             DatabaseUtil.releaseConnection(connection);
             return null;
@@ -227,11 +227,11 @@ class PodcastApiCacheUpdater {
                 long podcastId = userRecents.get(userRecentIndex - 1).getPodcastId();
                 podcastIds.add(podcastId);
                 sqlPodcasts.append("id = :p").append(userRecentIndex);
-                if (userRecentIndex > 1 && userRecentIndex < userRecents.size()) {
+                if (userRecentIndex < userRecents.size()) {
                     sqlPodcasts.append(" or ");
                 }
                 if (userRecentIndex == userRecents.size()) {
-                    sqlPodcasts.append("limit :limit offset by :offset rows;");
+                    sqlPodcasts.append(" limit :limit offset :offset rows;");
                 }
             }
             List<Podcast> podcasts = connection.createQuery(String.format(sqlPodcasts.toString(), DatabaseUtil.schema))
@@ -243,7 +243,7 @@ class PodcastApiCacheUpdater {
             DatabaseUtil.releaseConnection(connection);
             return podcasts;
         }
-        catch (Sql2oException e) {
+        catch (Exception e) {
             Logger.exception(e);
             DatabaseUtil.releaseConnection(connection);
             return null;
@@ -287,7 +287,82 @@ class PodcastApiCacheUpdater {
             DatabaseUtil.releaseConnection(connection);
             return podcasts;
         }
-        catch (Sql2oException e) {
+        catch (Exception e) {
+            Logger.exception(e);
+            DatabaseUtil.releaseConnection(connection);
+            return null;
+        }
+    }
+
+    /**
+     * Update podcsts for the given IDs
+     * @param stringArrayRequest string array request
+     */
+    static void updatePodcastsCache(StringArrayRequest stringArrayRequest) {
+        List<String> podcastIds = stringArrayRequest.getStrings();
+        List<Long>  longPodcastIds = new ArrayList<>();
+        for (String id : podcastIds) {
+            try {
+                longPodcastIds.add(Long.parseLong(id));
+            }
+            catch (NumberFormatException ignore) {}
+        }
+        List<Podcast> podcasts = getPodcastFromDatabase(longPodcastIds);
+        if (podcasts != null) {
+            Map<String, String> podcastMap = new HashMap<>();
+            for (Podcast podcast : podcasts) {
+                try {
+                    podcastMap.put(String.valueOf(podcast.getId()), Avocado.gson.toJson(podcast));
+                }
+                catch (JsonSyntaxException e) {
+                    Logger.exception(e);
+                }
+            }
+            Cacher.cache.msetWithPrefix(ApiCache.PREFIX_PODCAST, podcastMap);
+        }
+    }
+
+    /**
+     * Get podcasts by ids from database
+     * @param ids podcast ids
+     * @return podcast list or null on error
+     */
+    private static List<Podcast> getPodcastFromDatabase(List<Long> ids) {
+        if (ids.size() < 1 || ids.size() > DefaultConfig.ITEM_LIMIT)
+            return null;
+        StringBuilder sql = new StringBuilder("select * from %s.podcasts where ");
+        String sqlEpisodes = "select count(id) from %s.episodes where podcast_id = :podcast_id;";
+        sqlEpisodes = String.format(sqlEpisodes, DatabaseUtil.schema);
+        for (int idIndex = 1; idIndex <= ids.size(); idIndex++) {
+            sql.append("id = :p").append(idIndex);
+            if (idIndex < ids.size()) {
+                sql.append(" or ");
+            }
+            if (idIndex == ids.size()) {
+                sql.append(";");
+            }
+        }
+        Connection connection = null;
+        try {
+            connection = DatabaseUtil.getTransaction();
+            List<Podcast> podcasts = connection.createQuery(String.format(sql.toString(), DatabaseUtil.schema))
+                    .withParams(ids.toArray())
+                    .executeAndFetch(Podcast.class);
+            for (Long id : ids) {
+                Integer episodeCount = connection.createQuery(sqlEpisodes)
+                        .addParameter("podcast_id", id)
+                        .executeScalar(Integer.class);
+                for (Podcast podcast : podcasts) {
+                    if (podcast.getId() == id) {
+                        podcast.setEpisodes(episodeCount);
+                    }
+                }
+            }
+            connection.commit();
+            DatabaseUtil.releaseConnection(connection);
+            return podcasts;
+        }
+        catch (Exception e) {
             Logger.exception(e);
             DatabaseUtil.releaseConnection(connection);
             return null;

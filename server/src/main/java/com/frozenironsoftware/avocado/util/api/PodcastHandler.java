@@ -2,17 +2,25 @@ package com.frozenironsoftware.avocado.util.api;
 
 import com.frozenironsoftware.avocado.Avocado;
 import com.frozenironsoftware.avocado.data.DefaultConfig;
-import com.frozenironsoftware.avocado.data.model.LimitedOffsetRequest;
-import com.frozenironsoftware.avocado.data.model.UserIdLimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.Podcast;
+import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.util.ApiCache;
 import com.frozenironsoftware.avocado.util.AuthUtil;
+import com.frozenironsoftware.avocado.util.Logger;
 import com.frozenironsoftware.avocado.util.MessageQueue;
+import com.frozenironsoftware.avocado.util.QueryUtil;
 import com.frozenironsoftware.avocado.util.StringUtil;
-import com.rabbitmq.client.DefaultConsumer;
+import com.google.gson.JsonSyntaxException;
 import org.eclipse.jetty.http.HttpStatus;
 import spark.HaltException;
 import spark.Request;
 import spark.Response;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static spark.Spark.halt;
 
@@ -99,5 +107,37 @@ public class PodcastHandler {
             throw halt(HttpStatus.BAD_REQUEST_400, "{\"error\": \"Limit out of bounds\"}");
         if (offset < 0 || offset > DefaultConfig.MAX_OFFSET)
             throw halt(HttpStatus.BAD_REQUEST_400, "{\"error\": \"Offset out of bounds\"}");
+    }
+
+    /**
+     * Get podcast data for specifed podcast ids
+     * @param request request
+     * @param response response
+     * @return podcast JSON array
+     */
+    public static String getPodcasts(Request request, Response response) {
+        List<String> podcastIds = QueryUtil.extractQueryToList(request, "id");
+        if (podcastIds.size() < 1 || podcastIds.size() > DefaultConfig.ITEM_LIMIT) {
+            response.type("text/html");
+            throw halt(HttpStatus.BAD_REQUEST_400, "ID count out of range");
+        }
+        // Queue cache update
+        StringArrayRequest stringArrayRequest = new StringArrayRequest(podcastIds);
+        Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_PODCASTS, stringArrayRequest);
+        // Fetch from cache
+        Map<String, String> podcastsJson = Avocado.cache.mgetWithPrefix(ApiCache.PREFIX_PODCAST, podcastIds);
+        List<Podcast> podcasts = new ArrayList<>();
+        for (String podcastJson : podcastsJson.values()) {
+            if (podcastJson == null)
+                continue;
+            try {
+                Podcast podcast = Avocado.gson.fromJson(podcastJson, Podcast.class);
+                podcasts.add(podcast);
+            }
+            catch (JsonSyntaxException e) {
+                Logger.exception(e);
+            }
+        }
+        return Avocado.gson.toJson(podcasts);
     }
 }
