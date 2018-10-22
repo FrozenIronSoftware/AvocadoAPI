@@ -74,6 +74,7 @@ public class Avocado {
                 get("/favorites", PodcastHandler::getFavorites);
                 get("/recents", PodcastHandler::getRecent);
                 get("/popular", PodcastHandler::getPopular);
+                get("/episodes", PodcastHandler::getEpisodes);
             });
         });
     }

@@ -11,6 +11,10 @@ public class Episode {
     private String title;
     private String description;
     private long plays;
+    private int progress;
+    private int position;
+    private String type;
+    private String url;
 
     public long getId() {
         return id;
@@ -58,5 +62,37 @@ public class Episode {
 
     public void setPlays(long plays) {
         this.plays = plays;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

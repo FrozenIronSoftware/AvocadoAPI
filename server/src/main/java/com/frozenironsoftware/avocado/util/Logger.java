@@ -15,7 +15,7 @@ import java.util.logging.LogRecord;
  * Created by rolando on 3/21/17.
  */
 public class Logger {
-    private static final java.util.logging.Logger logger;
+    public static final java.util.logging.Logger logger;
     private static final ConsoleHandler consoleHandler;
 
     static {

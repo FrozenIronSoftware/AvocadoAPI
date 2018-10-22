@@ -3,11 +3,13 @@ package com.frozenironsoftware.avocado.cacher.util;
 import com.frozenironsoftware.avocado.Avocado;
 import com.frozenironsoftware.avocado.cacher.Cacher;
 import com.frozenironsoftware.avocado.data.DefaultConfig;
+import com.frozenironsoftware.avocado.data.SortOrder;
 import com.frozenironsoftware.avocado.data.model.Episode;
 import com.frozenironsoftware.avocado.data.model.Podcast;
 import com.frozenironsoftware.avocado.data.model.PodcastPlay;
 import com.frozenironsoftware.avocado.data.model.UserFavorite;
 import com.frozenironsoftware.avocado.data.model.UserRecent;
+import com.frozenironsoftware.avocado.data.model.bytes.EpisodesRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
@@ -17,12 +19,15 @@ import com.frozenironsoftware.avocado.util.Logger;
 import com.google.gson.JsonSyntaxException;
 import org.jetbrains.annotations.Nullable;
 import org.sql2o.Connection;
+import org.sql2o.Query;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.frozenironsoftware.avocado.util.Logger.logger;
 
 class PodcastApiCacheUpdater {
     /**
@@ -98,7 +103,7 @@ class PodcastApiCacheUpdater {
             if (favoritePodcasts.size() == 0) {
                 connection.commit();
                 DatabaseUtil.releaseConnection(connection);
-                return null;
+                return new ArrayList<>();
             }
             // Finish SQL queries with favorite podcast ids
             List<Long> favoriteIds = new ArrayList<>();
@@ -220,7 +225,7 @@ class PodcastApiCacheUpdater {
             if (userRecents.size() == 0) {
                 connection.commit();
                 DatabaseUtil.releaseConnection(connection);
-                return null;
+                return new ArrayList<>();
             }
             List<Long> podcastIds = new ArrayList<>();
             for (int userRecentIndex = 1; userRecentIndex <= userRecents.size(); userRecentIndex++) {
@@ -329,7 +334,7 @@ class PodcastApiCacheUpdater {
      */
     private static List<Podcast> getPodcastFromDatabase(List<Long> ids) {
         if (ids.size() < 1 || ids.size() > DefaultConfig.ITEM_LIMIT)
-            return null;
+            return new ArrayList<>();
         StringBuilder sql = new StringBuilder("select * from %s.podcasts where ");
         String sqlEpisodes = "select count(id) from %s.episodes where podcast_id = :podcast_id;";
         sqlEpisodes = String.format(sqlEpisodes, DatabaseUtil.schema);
@@ -360,7 +365,118 @@ class PodcastApiCacheUpdater {
             }
             connection.commit();
             DatabaseUtil.releaseConnection(connection);
+            // Add missing IDs
+            for (long id : ids) {
+                boolean contains = false;
+                for (Podcast podcast : podcasts) {
+                    if (podcast.getId() == id) {
+                        contains = true;
+                        break;
+                    }
+                }
+                if (!contains) {
+                    Podcast podcast = new Podcast();
+                    podcast.setId(id);
+                    podcast.setPlaceholder(true);
+                    podcasts.add(podcast);
+                }
+            }
             return podcasts;
+        }
+        catch (Exception e) {
+            Logger.exception(e);
+            DatabaseUtil.releaseConnection(connection);
+            return null;
+        }
+    }
+
+    /**
+     * Update podcast episode cache
+     * @param episodesRequest episode request
+     */
+    static void updatePodcastEpisodesCache(EpisodesRequest episodesRequest) {
+        List<Episode> episodes = getPodcastEpisodesFromDatabase(episodesRequest.getUserId(), episodesRequest.getLimit(),
+                episodesRequest.getOffset(), episodesRequest.getPodcastId(), episodesRequest.getSortOrder(),
+                episodesRequest.getEpisodeId());
+        if (episodes != null) {
+            String cacheId = ApiCache.createKey("podcasts/episodes", episodesRequest.getUserId(),
+                    episodesRequest.getLimit(), episodesRequest.getOffset(), episodesRequest.getPodcastId(),
+                    episodesRequest.getSortOrder().ordinal(), episodesRequest.getEpisodeId());
+            Cacher.cache.set(cacheId, Avocado.gson.toJson(episodes));
+        }
+    }
+
+    /**
+     * Get podcasts episodes
+     * @param userId user id
+     * @param limit result limit
+     * @param offset result row offset
+     * @param podcastId podcast id of episodes
+     * @param sortOrder order
+     * @param episodeId episode id
+     * @return episodes or null on error
+     */
+    @Nullable
+    private static List<Episode> getPodcastEpisodesFromDatabase(long userId, int limit, long offset, long podcastId,
+                                                                SortOrder sortOrder, long episodeId) {
+        String sqlGetEpisodes = "select * from %s.episodes where podcast_id = :podcast_id %s order by episode_id %s" +
+                " limit :limit offset :offset rows;";
+        String episodeAnd = episodeId > -1 ? "and episode_id = :episode_id" : "";
+        sqlGetEpisodes = String.format(sqlGetEpisodes, DatabaseUtil.schema, episodeAnd, sortOrder.name());
+        StringBuilder sqlGetPlays = new StringBuilder("select * from %s.user_plays where podcast_id = :podcast_id" +
+                " and user_id = :user_id and" +
+                " (");
+        Connection connection = null;
+        try {
+            connection = DatabaseUtil.getTransaction();
+            List<Episode> episodes;
+            Query getEpisodesQuery = connection.createQuery(sqlGetEpisodes)
+                    .addParameter("podcast_id", podcastId)
+                    .addParameter("limit", limit)
+                    .addParameter("offset", offset)
+                    .addColumnMapping("episode_id", "episodeId")
+                    .addColumnMapping("podcast_id", "podcastId");
+            if (episodeId > -1) {
+                getEpisodesQuery.addParameter("episode_id", episodeId);
+            }
+            episodes = getEpisodesQuery.executeAndFetch(Episode.class);
+            if (episodes.size() == 0) {
+                connection.commit();
+                DatabaseUtil.releaseConnection(connection);
+                return episodes;
+            }
+            List<Long> episodeIds = new ArrayList<>();
+            for (int episodeIndex = 1; episodeIndex <= episodes.size(); episodeIndex++) {
+                long episodeIdLoop = episodes.get(episodeIndex - 1).getEpisodeId();
+                episodeIds.add(episodeIdLoop);
+                sqlGetPlays.append("episode_id = :p").append(episodeIndex);
+                if (episodeIndex < episodes.size()) {
+                    sqlGetPlays.append(" or ");
+                }
+                else {
+                    sqlGetPlays.append(");");
+                }
+            }
+            List<PodcastPlay> plays = connection.createQuery(String.format(sqlGetPlays.toString(), DatabaseUtil.schema))
+                    .withParams(episodeIds.toArray())
+                    .addParameter("podcast_id", podcastId)
+                    .addParameter("user_id", userId)
+                    .addColumnMapping("user_id", "userId")
+                    .addColumnMapping("podcast_id", "podcastId")
+                    .addColumnMapping("episode_id", "episodeId")
+                    .executeAndFetch(PodcastPlay.class);
+            for (PodcastPlay play : plays) {
+                for (Episode episode : episodes) {
+                    if (episode.getEpisodeId() == play.getEpisodeId()) {
+                        episode.setProgress(play.getProgress());
+                        episode.setPosition(play.getPosition());
+                        break;
+                    }
+                }
+            }
+            connection.commit();
+            DatabaseUtil.releaseConnection(connection);
+            return episodes;
         }
         catch (Exception e) {
             Logger.exception(e);

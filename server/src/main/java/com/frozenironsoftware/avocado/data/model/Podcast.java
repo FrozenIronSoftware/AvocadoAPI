@@ -11,6 +11,8 @@ public class Podcast {
     @SerializedName("unplayed_episodes")
     private int unplayedEpisodes;
     private int episodes;
+    private String author;
+    private boolean isPlaceholder = false;
 
     public long getId() {
         return id;
@@ -66,5 +68,21 @@ public class Podcast {
 
     public int getEpisodes() {
         return episodes;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public boolean isPlaceholder() {
+        return isPlaceholder;
+    }
+
+    public void setPlaceholder(boolean placeholder) {
+        isPlaceholder = placeholder;
     }
 }

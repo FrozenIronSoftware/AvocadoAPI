@@ -1,5 +1,6 @@
 package com.frozenironsoftware.avocado.cacher.util;
 
+import com.frozenironsoftware.avocado.data.model.bytes.EpisodesRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
@@ -38,6 +39,9 @@ public class MessageConsumer extends DefaultConsumer {
                         break;
                     case GET_PODCASTS:
                         PodcastApiCacheUpdater.updatePodcastsCache(new StringArrayRequest(body));
+                        break;
+                    case GET_EPISODES:
+                        PodcastApiCacheUpdater.updatePodcastEpisodesCache(new EpisodesRequest(body));
                         break;
                     default:
                         Logger.warn("Unhandled message: %s", type.name());

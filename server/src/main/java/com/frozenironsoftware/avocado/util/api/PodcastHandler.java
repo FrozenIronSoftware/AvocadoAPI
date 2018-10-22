@@ -2,7 +2,9 @@ package com.frozenironsoftware.avocado.util.api;
 
 import com.frozenironsoftware.avocado.Avocado;
 import com.frozenironsoftware.avocado.data.DefaultConfig;
+import com.frozenironsoftware.avocado.data.SortOrder;
 import com.frozenironsoftware.avocado.data.model.Podcast;
+import com.frozenironsoftware.avocado.data.model.bytes.EpisodesRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
@@ -11,6 +13,7 @@ import com.frozenironsoftware.avocado.util.AuthUtil;
 import com.frozenironsoftware.avocado.util.Logger;
 import com.frozenironsoftware.avocado.util.MessageQueue;
 import com.frozenironsoftware.avocado.util.QueryUtil;
+import com.frozenironsoftware.avocado.util.ResponseUtil;
 import com.frozenironsoftware.avocado.util.StringUtil;
 import com.google.gson.JsonSyntaxException;
 import org.eclipse.jetty.http.HttpStatus;
@@ -20,6 +23,7 @@ import spark.Response;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static spark.Spark.halt;
@@ -45,7 +49,7 @@ public class PodcastHandler {
         String cacheId = ApiCache.createKey("podcasts/favorites", userId, limit, offset);
         String cachedData = Avocado.cache.get(cacheId);
         if (cachedData == null)
-            return "[]";
+            return ResponseUtil.queuedResponse(response, "[]");
         return cachedData;
     }
 
@@ -68,7 +72,7 @@ public class PodcastHandler {
         String cacheId = ApiCache.createKey("podcasts/recents", userId, limit, offset);
         String cachedData = Avocado.cache.get(cacheId);
         if (cachedData == null)
-            return "[]";
+            return ResponseUtil.queuedResponse(response, "[]");
         return cachedData;
     }
 
@@ -92,7 +96,7 @@ public class PodcastHandler {
         String cacheId = ApiCache.createKey("podcasts/popular", limit, offset);
         String cachedData = Avocado.cache.get(cacheId);
         if (cachedData == null)
-            return "[]";
+            return ResponseUtil.queuedResponse(response, "[]");
         return cachedData;
     }
 
@@ -128,16 +132,70 @@ public class PodcastHandler {
         Map<String, String> podcastsJson = Avocado.cache.mgetWithPrefix(ApiCache.PREFIX_PODCAST, podcastIds);
         List<Podcast> podcasts = new ArrayList<>();
         for (String podcastJson : podcastsJson.values()) {
-            if (podcastJson == null)
-                continue;
+            if (podcastJson == null) {
+                // If there is a result that is null it was not cached. Non-existing ids will be cached with a
+                // a placeholder.
+                return ResponseUtil.queuedResponse(response, "[]");
+            }
             try {
                 Podcast podcast = Avocado.gson.fromJson(podcastJson, Podcast.class);
-                podcasts.add(podcast);
+                if (!podcast.isPlaceholder())
+                    podcasts.add(podcast);
             }
             catch (JsonSyntaxException e) {
                 Logger.exception(e);
             }
         }
         return Avocado.gson.toJson(podcasts);
+    }
+
+    /**
+     * Get episodes for a podcast
+     * @param request request
+     * @param response response
+     * @return JSON array of episodes
+     */
+    public static String getEpisodes(Request request, Response response) {
+        long userId = AuthUtil.checkAuth(request);
+        int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
+                String.valueOf(DefaultConfig.ITEM_LIMIT)));
+        long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
+        checkLimitAndOffset(limit, offset);
+        String episodeIdString = request.queryParams("episode_id");
+        long episodeId = -1;
+        if (episodeIdString != null) {
+            episodeId = StringUtil.parseLong(episodeIdString);
+        }
+        String podcastIdString = request.queryParamOrDefault("podcast_id", request.queryParams("id"));
+        if (podcastIdString == null) {
+            response.type("text/html");
+            throw halt(HttpStatus.BAD_REQUEST_400, "Missing \"podcast_id\" / \"id\" field");
+        }
+        long podcastId = StringUtil.parseLong(podcastIdString);
+        String order = request.queryParamOrDefault("order", "DESC").toUpperCase(Locale.US);
+        SortOrder sortOrder;
+        switch (order) {
+            case "DESC":
+            case "DESCENDING":
+                sortOrder = SortOrder.DESC;
+                break;
+            case "ASC":
+            case "ASCENDING":
+                sortOrder = SortOrder.ASC;
+                break;
+            default:
+                response.type("text/html");
+                throw halt(HttpStatus.BAD_REQUEST_400, "");
+        }
+        // Queue cache update
+        EpisodesRequest episodesRequest = new EpisodesRequest(userId, limit, offset, podcastId, sortOrder, episodeId);
+        Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_EPISODES, episodesRequest);
+        // Fetch from cache
+        String cacheId = ApiCache.createKey("podcasts/episodes", userId, limit, offset, podcastId,
+                sortOrder.ordinal(), episodeId);
+        String cachedData = Avocado.cache.get(cacheId);
+        if (cachedData == null)
+            return ResponseUtil.queuedResponse(response, "[]");
+        return cachedData;
     }
 }

@@ -11,6 +11,7 @@ public class PodcastPlay {
     @SerializedName("episode_id")
     private long episodeId;
     private int position;
+    private int progress;
 
     public long getId() {
         return id;
@@ -50,5 +51,13 @@ public class PodcastPlay {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
     }
 }
