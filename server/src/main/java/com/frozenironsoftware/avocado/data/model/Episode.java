@@ -15,6 +15,7 @@ public class Episode {
     private int position;
     private String type;
     private String url;
+    private String genre;
 
     public long getId() {
         return id;
@@ -94,5 +95,13 @@ public class Episode {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
     }
 }
