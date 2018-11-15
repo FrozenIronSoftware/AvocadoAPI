@@ -7,6 +7,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.ShutdownListener;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -19,17 +21,31 @@ public class MessageQueue {
     private static final String EXCHANGE_NAME = "worker";
     private static final String QUEUE_NAME = "request";
     private static final String ROUTING_KEY = "route-request-worker";
-    private Channel channel;
+    private final String connectionUrl;
+    @Nullable private Channel channel;
 
     public MessageQueue(String url) {
+        this.connectionUrl = url;
+        connect();
+    }
+
+    /**
+     * (Re)connect to the message queue server
+     * This can be called if already connected.
+     * @return True if a connect has been established or has aleady been established
+     */
+    public boolean connect() {
+        if (channel != null && channel.isOpen())
+            return true;
         ConnectionFactory factory = new ConnectionFactory();
         try {
-            factory.setUri(url);
+            factory.setUri(connectionUrl);
         }
         catch (NoSuchAlgorithmException | KeyManagementException | URISyntaxException e) {
             Logger.exception(e);
             Logger.warn("Failed to create connection factory");
-            System.exit(1);
+            channel = null;
+            return false;
         }
         try {
             Connection connection = factory.newConnection();
@@ -37,11 +53,13 @@ public class MessageQueue {
             channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
             channel.queueDeclare(QUEUE_NAME, true, false, false, null);
             channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
+            return true;
         }
         catch (IOException | TimeoutException e) {
             Logger.exception(e);
             Logger.warn("Failed to connect to message queue");
-            System.exit(1);
+            channel = null;
+            return false;
         }
     }
 
@@ -50,8 +68,11 @@ public class MessageQueue {
      * @param messageConsumer consumer
      */
     public void addConsumer(Consumer messageConsumer) {
+        if (!connect())
+            return;
         try {
-            channel.basicConsume(QUEUE_NAME, messageConsumer);
+            if (channel != null)
+                channel.basicConsume(QUEUE_NAME, messageConsumer);
         }
         catch (IOException e) {
             Logger.exception(e);
@@ -62,6 +83,7 @@ public class MessageQueue {
      * Get the default channel that has had the default queue and exchange declared and queue bound
      * @return channel
      */
+    @Nullable
     public Channel getChannel() {
         return channel;
     }
@@ -72,14 +94,28 @@ public class MessageQueue {
      * @param data additional parameters for the request
      */
     public void cacheRequest(TYPE type, ByteSerializable data) {
+        if (!connect())
+            return;
         AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties.Builder();
         builder.contentType(type.name());
         try {
-            getChannel().basicPublish(EXCHANGE_NAME, ROUTING_KEY, builder.build(), data.toBytes());
+            if (getChannel() != null)
+                getChannel().basicPublish(EXCHANGE_NAME, ROUTING_KEY, builder.build(), data.toBytes());
         }
         catch (IOException e) {
             Logger.exception(e);
         }
+    }
+
+    /**
+     * Add a shutdown listener to the channel
+     * @param shutdownListener listener
+     */
+    public void addShutdownListener(ShutdownListener shutdownListener) {
+        if (!connect())
+            return;
+        if (channel != null)
+            channel.addShutdownListener(shutdownListener);
     }
 
     public enum TYPE {

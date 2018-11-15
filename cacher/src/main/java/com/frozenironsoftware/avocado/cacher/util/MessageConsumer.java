@@ -9,16 +9,19 @@ import com.frozenironsoftware.avocado.util.MessageQueue;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.ShutdownListener;
+import com.rabbitmq.client.ShutdownSignalException;
 
 import java.io.IOException;
 
-public class MessageConsumer extends DefaultConsumer {
+public class MessageConsumer extends DefaultConsumer implements ShutdownListener {
     private final MessageQueue queue;
 
     public MessageConsumer(MessageQueue messageQueue) {
         super(messageQueue.getChannel());
         this.queue = messageQueue;
         queue.addConsumer(this);
+        queue.addShutdownListener(this);
     }
 
     @Override
@@ -51,6 +54,21 @@ public class MessageConsumer extends DefaultConsumer {
                 Logger.exception(e);
             }
         }
-        queue.getChannel().basicAck(envelope.getDeliveryTag(), false);
+        if (queue.connect() && queue.getChannel() != null) {
+            queue.getChannel().basicAck(envelope.getDeliveryTag(), false);
+        }
+    }
+
+    @Override
+    public void shutdownCompleted(ShutdownSignalException cause) {
+        queue.connect();
+        while (queue.getChannel() == null) {
+            Logger.debug("Message queue connection closed. Retrying connection in 5 seconds");
+            queue.connect();
+            try {
+                Thread.sleep(5000);
+            }
+            catch (InterruptedException ignore) {}
+        }
     }
 }

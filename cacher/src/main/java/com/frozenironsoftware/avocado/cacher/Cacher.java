@@ -1,12 +1,12 @@
 package com.frozenironsoftware.avocado.cacher;
 
 import com.frozenironsoftware.avocado.Avocado;
+import com.frozenironsoftware.avocado.cacher.data.Constants;
 import com.frozenironsoftware.avocado.cacher.util.MessageConsumer;
 import com.frozenironsoftware.avocado.util.ApiCache;
 import com.frozenironsoftware.avocado.util.DatabaseUtil;
 import com.frozenironsoftware.avocado.util.Logger;
 import com.frozenironsoftware.avocado.util.MessageQueue;
-import com.frozenironsoftware.avocado.cacher.data.Constants;
 
 import java.util.logging.Level;
 
@@ -26,6 +26,15 @@ public class Cacher {
         DatabaseUtil.setServer(sqlServer);
         // MQ address
         String mqServer = Avocado.getMqServer();
-        MessageConsumer messageConsumer = new MessageConsumer(new MessageQueue(mqServer));
+        MessageQueue messageQueue = new MessageQueue(mqServer);
+        while (messageQueue.getChannel() == null) {
+            Logger.warn("Failed to connect to message queue. Retrying in 5 seconds");
+            messageQueue.connect();
+            try {
+                Thread.sleep(5000);
+            }
+            catch (InterruptedException ignore) {}
+        }
+        MessageConsumer messageConsumer = new MessageConsumer(messageQueue);
     }
 }
