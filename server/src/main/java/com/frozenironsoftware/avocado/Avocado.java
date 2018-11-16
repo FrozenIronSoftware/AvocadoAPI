@@ -1,12 +1,13 @@
 package com.frozenironsoftware.avocado;
 
+import com.frozenironsoftware.avocado.data.Constants;
 import com.frozenironsoftware.avocado.util.ApiCache;
 import com.frozenironsoftware.avocado.util.AuthUtil;
 import com.frozenironsoftware.avocado.util.DatabaseUtil;
 import com.frozenironsoftware.avocado.util.Logger;
-import com.frozenironsoftware.avocado.data.Constants;
 import com.frozenironsoftware.avocado.util.MessageQueue;
 import com.frozenironsoftware.avocado.util.api.PodcastHandler;
+import com.frozenironsoftware.avocado.util.api.SearchHandler;
 import com.frozenironsoftware.avocado.util.api.UserHandler;
 import com.google.gson.Gson;
 
@@ -76,6 +77,8 @@ public class Avocado {
                 get("/popular", PodcastHandler::getPopular);
                 get("/episodes", PodcastHandler::getEpisodes);
             });
+            // Search
+            get("/search", SearchHandler::getSearch);
         });
     }
 

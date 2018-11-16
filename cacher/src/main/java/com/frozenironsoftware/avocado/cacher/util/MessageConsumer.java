@@ -2,6 +2,7 @@ package com.frozenironsoftware.avocado.cacher.util;
 
 import com.frozenironsoftware.avocado.data.model.bytes.EpisodesRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.QueryLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.util.Logger;
@@ -27,9 +28,16 @@ public class MessageConsumer extends DefaultConsumer implements ShutdownListener
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
             throws IOException {
+        if (!envelope.getRoutingKey().equals(queue.getRoutingKey())) {
+            if (queue.connect() && queue.getChannel() != null) {
+                queue.getChannel().basicNack(envelope.getDeliveryTag(), false, true);
+            }
+            return;
+        }
         if (properties.getContentType() != null && body != null) {
             try {
                 MessageQueue.TYPE type = MessageQueue.TYPE.valueOf(properties.getContentType());
+                Logger.extra("Message Consumer received: %s", type.name());
                 switch (type) {
                     case GET_FAVORITE_PODCASTS:
                         PodcastApiCacheUpdater.updateUserFavoritePodcastCache(new UserIdLimitedOffsetRequest(body));
@@ -45,6 +53,12 @@ public class MessageConsumer extends DefaultConsumer implements ShutdownListener
                         break;
                     case GET_EPISODES:
                         PodcastApiCacheUpdater.updatePodcastEpisodesCache(new EpisodesRequest(body));
+                        break;
+                    case GET_SEARCH:
+                        SearchApiCacheUpdater.updateSearchCache(new QueryLimitedOffsetRequest(body));
+                        break;
+                    case FETCH_PODCASTS:
+                        PodcastFetcher.fetchForQuery(new QueryLimitedOffsetRequest(body));
                         break;
                     default:
                         Logger.warn("Unhandled message: %s", type.name());

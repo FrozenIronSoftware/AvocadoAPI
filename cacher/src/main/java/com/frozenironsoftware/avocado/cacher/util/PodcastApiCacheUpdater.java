@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.frozenironsoftware.avocado.util.Logger.logger;
-
 class PodcastApiCacheUpdater {
     /**
      * Update favorite pocasts for a user with pagination
@@ -70,7 +68,7 @@ class PodcastApiCacheUpdater {
      * @param offset offset
      * @return if limit and offset within range
      */
-    private static boolean checkLimitAndOffset(int limit, long offset) {
+    static boolean checkLimitAndOffset(int limit, long offset) {
         if (limit < 1 || limit > DefaultConfig.ITEM_LIMIT)
             return false;
         return offset >= 0 && offset <= DefaultConfig.MAX_OFFSET;

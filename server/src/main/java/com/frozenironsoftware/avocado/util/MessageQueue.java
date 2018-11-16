@@ -20,13 +20,25 @@ public class MessageQueue {
 
     private static final String EXCHANGE_NAME = "worker";
     private static final String QUEUE_NAME = "request";
-    private static final String ROUTING_KEY = "route-request-worker";
+    public static final String ROUTING_KEY_API_CACHER = "route-api-worker";
+    public static final String ROUTING_KEY_POD_CACHER = "route-pod-worker";
     private final String connectionUrl;
+    @Nullable private final String routingKey;
     @Nullable private Channel channel;
 
-    public MessageQueue(String url) {
+    /**
+     * Create a new message queue
+     * @param url connection url
+     * @param routingKey if this is not null, the queue will be bound with the routing key
+     */
+    public MessageQueue(String url, @Nullable String routingKey) {
         this.connectionUrl = url;
+        this.routingKey = routingKey;
         connect();
+    }
+
+    public MessageQueue(String url) {
+        this(url, null);
     }
 
     /**
@@ -50,9 +62,12 @@ public class MessageQueue {
         try {
             Connection connection = factory.newConnection();
             channel = connection.createChannel();
-            channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT, true);
+            channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.TOPIC, true);
             channel.queueDeclare(QUEUE_NAME, true, false, false, null);
-            channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
+            if (routingKey != null) {
+                Logger.debug("Binding to routing key: %s", routingKey);
+                channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, routingKey);
+            }
             return true;
         }
         catch (IOException | TimeoutException e) {
@@ -89,22 +104,33 @@ public class MessageQueue {
     }
 
     /**
-     * Cache a request of a specified type with only a user id needed
+     * Cache a request of a specified type
      * @param type type of cache request
      * @param data additional parameters for the request
+     * @param routingKey key to use for routing
      */
-    public void cacheRequest(TYPE type, ByteSerializable data) {
+    public void cacheRequest(TYPE type, ByteSerializable data, String routingKey) {
         if (!connect())
             return;
         AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties.Builder();
         builder.contentType(type.name());
         try {
             if (getChannel() != null)
-                getChannel().basicPublish(EXCHANGE_NAME, ROUTING_KEY, builder.build(), data.toBytes());
+                getChannel().basicPublish(EXCHANGE_NAME, routingKey, builder.build(), data.toBytes());
         }
         catch (IOException e) {
             Logger.exception(e);
         }
+    }
+
+    /**
+     * Cache a request of a specified type
+     * Uses default routing key
+     * @param type type of cache request
+     * @param data additional parameters for the request
+     */
+    public void cacheRequest(TYPE type, ByteSerializable data) {
+        cacheRequest(type, data, ROUTING_KEY_API_CACHER);
     }
 
     /**
@@ -118,7 +144,13 @@ public class MessageQueue {
             channel.addShutdownListener(shutdownListener);
     }
 
+    @Nullable
+    public String getRoutingKey() {
+        return routingKey;
+    }
+
     public enum TYPE {
-        GET_FAVORITE_PODCASTS, GET_RECENT_PODCASTS, GET_POPULAR_PODCASTS, GET_EPISODES, GET_PODCASTS
+        GET_FAVORITE_PODCASTS, GET_RECENT_PODCASTS, GET_POPULAR_PODCASTS, GET_EPISODES, GET_PODCASTS, FETCH_PODCASTS,
+        GET_SEARCH
     }
 }

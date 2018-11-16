@@ -17,7 +17,6 @@ import com.frozenironsoftware.avocado.util.ResponseUtil;
 import com.frozenironsoftware.avocado.util.StringUtil;
 import com.google.gson.JsonSyntaxException;
 import org.eclipse.jetty.http.HttpStatus;
-import spark.HaltException;
 import spark.Request;
 import spark.Response;
 
@@ -41,10 +40,12 @@ public class PodcastHandler {
         int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
                 String.valueOf(DefaultConfig.ITEM_LIMIT)));
         long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
-        checkLimitAndOffset(limit, offset);
+        QueryUtil.checkLimitAndOffset(limit, offset);
         // Queue cache update
-        UserIdLimitedOffsetRequest userIdLimitedOffsetRequest = new UserIdLimitedOffsetRequest(userId, limit, offset);
-        Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_FAVORITE_PODCASTS, userIdLimitedOffsetRequest);
+        if (QueryUtil.shouldRequestCache(request)) {
+            UserIdLimitedOffsetRequest userIdLimitedOffsetRequest = new UserIdLimitedOffsetRequest(userId, limit, offset);
+            Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_FAVORITE_PODCASTS, userIdLimitedOffsetRequest);
+        }
         // Fetch from cache
         String cacheId = ApiCache.createKey("podcasts/favorites", userId, limit, offset);
         String cachedData = Avocado.cache.get(cacheId);
@@ -64,10 +65,12 @@ public class PodcastHandler {
         int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
                 String.valueOf(DefaultConfig.ITEM_LIMIT)));
         long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
-        checkLimitAndOffset(limit, offset);
+        QueryUtil.checkLimitAndOffset(limit, offset);
         // Queue cache update
-        UserIdLimitedOffsetRequest userIdLimitedOffsetRequest = new UserIdLimitedOffsetRequest(userId, limit, offset);
-        Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_RECENT_PODCASTS, userIdLimitedOffsetRequest);
+        if (QueryUtil.shouldRequestCache(request)) {
+            UserIdLimitedOffsetRequest userIdLimitedOffsetRequest = new UserIdLimitedOffsetRequest(userId, limit, offset);
+            Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_RECENT_PODCASTS, userIdLimitedOffsetRequest);
+        }
         // Fetch from cache
         String cacheId = ApiCache.createKey("podcasts/recents", userId, limit, offset);
         String cachedData = Avocado.cache.get(cacheId);
@@ -88,29 +91,18 @@ public class PodcastHandler {
         int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
                 String.valueOf(DefaultConfig.ITEM_LIMIT)));
         long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
-        checkLimitAndOffset(limit, offset);
+        QueryUtil.checkLimitAndOffset(limit, offset);
         // Queue cache update
-        LimitedOffsetRequest limitedOffsetRequest = new LimitedOffsetRequest(limit, offset);
-        Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_POPULAR_PODCASTS, limitedOffsetRequest);
+        if (QueryUtil.shouldRequestCache(request)) {
+            LimitedOffsetRequest limitedOffsetRequest = new LimitedOffsetRequest(limit, offset);
+            Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_POPULAR_PODCASTS, limitedOffsetRequest);
+        }
         // Fetch from cache
         String cacheId = ApiCache.createKey("podcasts/popular", limit, offset);
         String cachedData = Avocado.cache.get(cacheId);
         if (cachedData == null)
             return ResponseUtil.queuedResponse(response, "[]");
         return cachedData;
-    }
-
-    /**
-     * Ensure the limit and offset are within the limits
-     * @param limit limit
-     * @param offset offset
-     * @throws HaltException 404 bad request if arguments are not within bounds
-     */
-    private static void checkLimitAndOffset(int limit, long offset) throws HaltException {
-        if (limit < 1 || limit > DefaultConfig.ITEM_LIMIT)
-            throw halt(HttpStatus.BAD_REQUEST_400, "{\"error\": \"Limit out of bounds\"}");
-        if (offset < 0 || offset > DefaultConfig.MAX_OFFSET)
-            throw halt(HttpStatus.BAD_REQUEST_400, "{\"error\": \"Offset out of bounds\"}");
     }
 
     /**
@@ -126,8 +118,10 @@ public class PodcastHandler {
             throw halt(HttpStatus.BAD_REQUEST_400, "ID count out of range");
         }
         // Queue cache update
-        StringArrayRequest stringArrayRequest = new StringArrayRequest(podcastIds);
-        Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_PODCASTS, stringArrayRequest);
+        if (QueryUtil.shouldRequestCache(request)) {
+            StringArrayRequest stringArrayRequest = new StringArrayRequest(podcastIds);
+            Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_PODCASTS, stringArrayRequest);
+        }
         // Fetch from cache
         Map<String, String> podcastsJson = Avocado.cache.mgetWithPrefix(ApiCache.PREFIX_PODCAST, podcastIds);
         List<Podcast> podcasts = new ArrayList<>();
@@ -160,7 +154,7 @@ public class PodcastHandler {
         int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
                 String.valueOf(DefaultConfig.ITEM_LIMIT)));
         long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
-        checkLimitAndOffset(limit, offset);
+        QueryUtil.checkLimitAndOffset(limit, offset);
         String episodeIdString = request.queryParams("episode_id");
         long episodeId = -1;
         if (episodeIdString != null) {
@@ -188,8 +182,10 @@ public class PodcastHandler {
                 throw halt(HttpStatus.BAD_REQUEST_400, "");
         }
         // Queue cache update
-        EpisodesRequest episodesRequest = new EpisodesRequest(userId, limit, offset, podcastId, sortOrder, episodeId);
-        Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_EPISODES, episodesRequest);
+        if (QueryUtil.shouldRequestCache(request)) {
+            EpisodesRequest episodesRequest = new EpisodesRequest(userId, limit, offset, podcastId, sortOrder, episodeId);
+            Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_EPISODES, episodesRequest);
+        }
         // Fetch from cache
         String cacheId = ApiCache.createKey("podcasts/episodes", userId, limit, offset, podcastId,
                 sortOrder.ordinal(), episodeId);

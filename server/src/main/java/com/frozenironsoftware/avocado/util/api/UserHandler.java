@@ -29,6 +29,7 @@ public class UserHandler {
      * @return user data JSON
      */
     public static String createAnonymousUser(Request request, Response response) {
+        // TODO move to cacher backend
         if (!AuthUtil.verifyClientId(request))
             throw halt(HttpStatus.UNAUTHORIZED_401);
         User user = createUserInDatabase();
@@ -121,6 +122,7 @@ public class UserHandler {
      * @return user info json. Always returns status 200 with the error field.
      */
     public static String getInfo(Request request, Response response) {
+        // TODO move to cacher backend
         long userId = AuthUtil.checkAuth(request);
         String sql = "select * from %s.users where id = :id;";
         sql = String.format(sql, DatabaseUtil.schema);

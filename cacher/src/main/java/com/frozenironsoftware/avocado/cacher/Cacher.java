@@ -12,6 +12,7 @@ import java.util.logging.Level;
 
 public class Cacher {
     public static ApiCache cache = null;
+    public static MessageQueue queue = null;
 
     public static void main(String[] args) {
         // Log level
@@ -26,7 +27,18 @@ public class Cacher {
         DatabaseUtil.setServer(sqlServer);
         // MQ address
         String mqServer = Avocado.getMqServer();
-        MessageQueue messageQueue = new MessageQueue(mqServer);
+        // MQ routing key
+        String routingKey = MessageQueue.ROUTING_KEY_API_CACHER;
+        if (args.length < 1)
+            Logger.info("Running an an API cache worker");
+        else {
+            if (args[0].equalsIgnoreCase("--podcast") || args[0].equalsIgnoreCase("-p")) {
+                Logger.info("Running as a podcast cache worker");
+                routingKey = MessageQueue.ROUTING_KEY_POD_CACHER;
+            }
+        }
+        // Start
+        MessageQueue messageQueue = new MessageQueue(mqServer, routingKey);
         while (messageQueue.getChannel() == null) {
             Logger.warn("Failed to connect to message queue. Retrying in 5 seconds");
             messageQueue.connect();
@@ -35,6 +47,7 @@ public class Cacher {
             }
             catch (InterruptedException ignore) {}
         }
+        queue = messageQueue;
         MessageConsumer messageConsumer = new MessageConsumer(messageQueue);
     }
 }
