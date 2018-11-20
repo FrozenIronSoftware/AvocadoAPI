@@ -30,6 +30,7 @@ allprojects {
         jbcryptVersion = "0.4"
         rabbitmqVersion = "5.4.2"
         junitVersion = "4.12"
+        envKeystoreVersion = "1.0.7"
     }
 
     repositories {
@@ -54,6 +55,7 @@ project(":server") {
         compile "org.postgresql:postgresql:$postgresqlVersion"
         compile "org.mindrot:jbcrypt:$jbcryptVersion"
         compile "com.rabbitmq:amqp-client:$rabbitmqVersion"
+        compile "com.heroku.sdk:env-keystore:$envKeystoreVersion"
         testCompile "junit:junit:$junitVersion"
     }
 }
