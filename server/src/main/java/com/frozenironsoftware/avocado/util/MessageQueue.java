@@ -1,6 +1,7 @@
 package com.frozenironsoftware.avocado.util;
 
 import com.frozenironsoftware.avocado.data.model.bytes.ByteSerializable;
+import com.heroku.sdk.EnvKeyStore;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
@@ -10,10 +11,16 @@ import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.ShutdownListener;
 import org.jetbrains.annotations.Nullable;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.util.concurrent.TimeoutException;
 
 public class MessageQueue {
@@ -51,9 +58,12 @@ public class MessageQueue {
             return true;
         ConnectionFactory factory = new ConnectionFactory();
         try {
+            if (Boolean.parseBoolean(System.getenv().getOrDefault("MQ_SECURE", "true")))
+                factory.useSslProtocol(getSslContext());
             factory.setUri(connectionUrl);
         }
-        catch (NoSuchAlgorithmException | KeyManagementException | URISyntaxException e) {
+        catch (NoSuchAlgorithmException | KeyManagementException | URISyntaxException | CertificateException |
+                KeyStoreException | IOException e) {
             Logger.exception(e);
             Logger.warn("Failed to create connection factory");
             channel = null;
@@ -76,6 +86,24 @@ public class MessageQueue {
             channel = null;
             return false;
         }
+    }
+
+    /**
+     * Create an SSL context with the env var trusted cert
+     * @return SSL context that trusts the env var
+     */
+    private SSLContext getSslContext() throws CertificateException, NoSuchAlgorithmException, KeyStoreException,
+            IOException, KeyManagementException {
+        String cert = System.getenv().getOrDefault("MQ_TRUST", "")
+                .replace("\\n", "\n");
+        EnvKeyStore keyStore = EnvKeyStore.createFromPEMStrings(cert,
+                new BigInteger(130, new SecureRandom()).toString(32));
+        String algorithm = TrustManagerFactory.getDefaultAlgorithm();
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
+        trustManagerFactory.init(keyStore.keyStore());
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+        return sslContext;
     }
 
     /**

@@ -133,6 +133,12 @@ Values: TRUE FALSE
 
 Should the MQ connection use TLS
 
+### MQ_TRUST
+
+Literal `\n` characters will be replaced with new lines.
+
+MQ TLS certificate
+
 ### REDIS_SECURE
 
 If set to TRUE, the Redis connection will be made over TLS

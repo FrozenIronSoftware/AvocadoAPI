@@ -2,7 +2,12 @@ package com.frozenironsoftware.avocado.data.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Episode {
+    private static final Map<String, String> COLUMN_MAPPINGS;
     private long id;
     @SerializedName("podcast_id")
     private long podcastId;
@@ -15,7 +20,25 @@ public class Episode {
     private int position;
     private String type;
     private String url;
-    private String genre;
+    private String guid;
+    @SerializedName("date_released")
+    private Timestamp dateReleased;
+
+    static {
+        Map<String, String> map = new HashMap<>();
+        map.put("podcast_id", "podcastId");
+        map.put("episode_id", "episodeId");
+        map.put("date_released", "dateReleased");
+        COLUMN_MAPPINGS = map;
+    }
+
+    /**
+     * Get SQL column mappings
+     * @return column mappings
+     */
+    public static Map<String, String> getColumnMapings() {
+        return COLUMN_MAPPINGS;
+    }
 
     public long getId() {
         return id;
@@ -97,11 +120,19 @@ public class Episode {
         this.url = url;
     }
 
-    public String getGenre() {
-        return genre;
+    public String getGuid() {
+        return guid;
     }
 
-    public void setGenre(String genre) {
-        this.genre = genre;
+    public void setGuid(String guid) {
+        this.guid = guid;
+    }
+
+    public Timestamp getDateReleased() {
+        return dateReleased;
+    }
+
+    public void setDateReleased(Timestamp dateReleased) {
+        this.dateReleased = dateReleased;
     }
 }

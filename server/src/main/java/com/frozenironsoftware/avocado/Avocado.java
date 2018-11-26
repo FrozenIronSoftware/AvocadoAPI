@@ -126,6 +126,8 @@ public class Avocado {
         }
         if (Boolean.parseBoolean(System.getenv().getOrDefault("MQ_SECURE", "true")))
             mqServer = mqServer.replace("amqp://", "amqps://");
+        else
+            Logger.warn("Connecting to message queue without SSL");
         return mqServer;
     }
 }

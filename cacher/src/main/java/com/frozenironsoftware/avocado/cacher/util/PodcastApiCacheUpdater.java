@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 class PodcastApiCacheUpdater {
@@ -94,9 +95,7 @@ class PodcastApiCacheUpdater {
             // Get favorite podcast ids
             List<UserFavorite> favoritePodcasts = connection.createQuery(sqlAllFavorites)
                     .addParameter("user_id", userId)
-                    .addColumnMapping("date_favorited", "dateFavorited")
-                    .addColumnMapping("user_id", "userId")
-                    .addColumnMapping("podcast_id", "podcastId")
+                    .setColumnMappings(UserFavorite.getColumnMapings())
                     .executeAndFetch(UserFavorite.class);
             if (favoritePodcasts.size() == 0) {
                 connection.commit();
@@ -127,20 +126,18 @@ class PodcastApiCacheUpdater {
                     DatabaseUtil.schema))
                     .addParameter("user_id", userId)
                     .withParams(favoriteIds.toArray())
-                    .addColumnMapping("user_id", "userId")
-                    .addColumnMapping("podcast_id", "podcastId")
-                    .addColumnMapping("episode_id", "episodeId")
+                    .setColumnMappings(PodcastPlay.getColumnMapings())
                     .executeAndFetch(PodcastPlay.class);
             // Fetch podcast episodes
             List<Episode> podcastEpisodes = connection.createQuery(String.format(sqlEpisodes.toString(),
                     DatabaseUtil.schema))
                     .withParams(favoriteIds.toArray())
-                    .addColumnMapping("podcast_id", "podcastId")
-                    .addColumnMapping("episode_id", "episodeId")
+                    .setColumnMappings(Episode.getColumnMapings())
                     .executeAndFetch(Episode.class);
             // Fetch podcasts
             List<Podcast> podcasts = connection.createQuery(String.format(sqlPodcasts.toString(), DatabaseUtil.schema))
                     .withParams(favoriteIds.toArray())
+                    .setColumnMappings(Podcast.getColumnMapings())
                     .executeAndFetch(Podcast.class);
             // Commit and close connection
             connection.commit();
@@ -153,7 +150,7 @@ class PodcastApiCacheUpdater {
                 boolean played = false;
                 for (PodcastPlay play : podcastPlays) {
                     if (play.getPodcastId() == episode.getPodcastId() &&
-                            play.getEpisodeId() == episode.getEpisodeId()) {
+                            Objects.equals(play.getEpisodeGuid(), episode.getGuid())) {
                         played = true;
                         break;
                     }
@@ -217,8 +214,7 @@ class PodcastApiCacheUpdater {
                     .addParameter("user_id", userId)
                     .addParameter("limit", limit)
                     .addParameter("offset", offset)
-                    .addColumnMapping("user_id", "userId")
-                    .addColumnMapping("podcast_id", "podcastId")
+                    .setColumnMappings(UserRecent.getColumnMapings())
                     .executeAndFetch(UserRecent.class);
             if (userRecents.size() == 0) {
                 connection.commit();
@@ -241,6 +237,7 @@ class PodcastApiCacheUpdater {
                     .withParams(podcastIds.toArray())
                     .addParameter("limit", limit)
                     .addParameter("offset", offset)
+                    .setColumnMappings(Podcast.getColumnMapings())
                     .executeAndFetch(Podcast.class);
             connection.commit();
             DatabaseUtil.releaseConnection(connection);
@@ -285,6 +282,7 @@ class PodcastApiCacheUpdater {
             List<Podcast> podcasts = connection.createQuery(sql)
                     .addParameter("limit", limit)
                     .addParameter("offset", offset)
+                    .setColumnMappings(Podcast.getColumnMapings())
                     .executeAndFetch(Podcast.class);
             connection.commit();
             DatabaseUtil.releaseConnection(connection);
@@ -310,7 +308,7 @@ class PodcastApiCacheUpdater {
             }
             catch (NumberFormatException ignore) {}
         }
-        List<Podcast> podcasts = getPodcastFromDatabase(longPodcastIds);
+        List<Podcast> podcasts = PodcastDatabaseUtil.getPodcastFromDatabase(longPodcastIds);
         if (podcasts != null) {
             Map<String, String> podcastMap = new HashMap<>();
             for (Podcast podcast : podcasts) {
@@ -322,69 +320,6 @@ class PodcastApiCacheUpdater {
                 }
             }
             Cacher.cache.msetWithPrefix(ApiCache.PREFIX_PODCAST, podcastMap);
-        }
-    }
-
-    /**
-     * Get podcasts by ids from database
-     * @param ids podcast ids
-     * @return podcast list or null on error
-     */
-    private static List<Podcast> getPodcastFromDatabase(List<Long> ids) {
-        if (ids.size() < 1 || ids.size() > DefaultConfig.ITEM_LIMIT)
-            return new ArrayList<>();
-        StringBuilder sql = new StringBuilder("select * from %s.podcasts where ");
-        String sqlEpisodes = "select count(id) from %s.episodes where podcast_id = :podcast_id;";
-        sqlEpisodes = String.format(sqlEpisodes, DatabaseUtil.schema);
-        for (int idIndex = 1; idIndex <= ids.size(); idIndex++) {
-            sql.append("id = :p").append(idIndex);
-            if (idIndex < ids.size()) {
-                sql.append(" or ");
-            }
-            if (idIndex == ids.size()) {
-                sql.append(";");
-            }
-        }
-        Connection connection = null;
-        try {
-            connection = DatabaseUtil.getTransaction();
-            List<Podcast> podcasts = connection.createQuery(String.format(sql.toString(), DatabaseUtil.schema))
-                    .withParams(ids.toArray())
-                    .executeAndFetch(Podcast.class);
-            for (Long id : ids) {
-                Integer episodeCount = connection.createQuery(sqlEpisodes)
-                        .addParameter("podcast_id", id)
-                        .executeScalar(Integer.class);
-                for (Podcast podcast : podcasts) {
-                    if (podcast.getId() == id) {
-                        podcast.setEpisodes(episodeCount);
-                    }
-                }
-            }
-            connection.commit();
-            DatabaseUtil.releaseConnection(connection);
-            // Add missing IDs
-            for (long id : ids) {
-                boolean contains = false;
-                for (Podcast podcast : podcasts) {
-                    if (podcast.getId() == id) {
-                        contains = true;
-                        break;
-                    }
-                }
-                if (!contains) {
-                    Podcast podcast = new Podcast();
-                    podcast.setId(id);
-                    podcast.setPlaceholder(true);
-                    podcasts.add(podcast);
-                }
-            }
-            return podcasts;
-        }
-        catch (Exception e) {
-            Logger.exception(e);
-            DatabaseUtil.releaseConnection(connection);
-            return null;
         }
     }
 
@@ -417,7 +352,7 @@ class PodcastApiCacheUpdater {
     @Nullable
     private static List<Episode> getPodcastEpisodesFromDatabase(long userId, int limit, long offset, long podcastId,
                                                                 SortOrder sortOrder, long episodeId) {
-        String sqlGetEpisodes = "select * from %s.episodes where podcast_id = :podcast_id %s order by episode_id %s" +
+        String sqlGetEpisodes = "select * from %s.episodes where podcast_id = :podcast_id %s order by date_released %s" +
                 " limit :limit offset :offset rows;";
         String episodeAnd = episodeId > -1 ? "and episode_id = :episode_id" : "";
         sqlGetEpisodes = String.format(sqlGetEpisodes, DatabaseUtil.schema, episodeAnd, sortOrder.name());
@@ -432,8 +367,7 @@ class PodcastApiCacheUpdater {
                     .addParameter("podcast_id", podcastId)
                     .addParameter("limit", limit)
                     .addParameter("offset", offset)
-                    .addColumnMapping("episode_id", "episodeId")
-                    .addColumnMapping("podcast_id", "podcastId");
+                    .setColumnMappings(Episode.getColumnMapings());
             if (episodeId > -1) {
                 getEpisodesQuery.addParameter("episode_id", episodeId);
             }
@@ -459,13 +393,11 @@ class PodcastApiCacheUpdater {
                     .withParams(episodeIds.toArray())
                     .addParameter("podcast_id", podcastId)
                     .addParameter("user_id", userId)
-                    .addColumnMapping("user_id", "userId")
-                    .addColumnMapping("podcast_id", "podcastId")
-                    .addColumnMapping("episode_id", "episodeId")
+                    .setColumnMappings(PodcastPlay.getColumnMapings())
                     .executeAndFetch(PodcastPlay.class);
             for (PodcastPlay play : plays) {
                 for (Episode episode : episodes) {
-                    if (episode.getEpisodeId() == play.getEpisodeId()) {
+                    if (Objects.equals(episode.getGuid(), play.getEpisodeGuid())) {
                         episode.setProgress(play.getProgress());
                         episode.setPosition(play.getPosition());
                         break;

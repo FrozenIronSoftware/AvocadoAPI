@@ -24,15 +24,17 @@ public class SearchHandler {
      */
     public static String getSearch(@NotNull Request request, Response response) {
         String query = request.queryParams("q");
-        if (query == null)
+        if (query == null || query.isEmpty())
             throw halt(HttpStatus.BAD_REQUEST_400, "Missing query");
         int limit = StringUtil.parseInt(request.queryParamOrDefault("limit",
                 String.valueOf(DefaultConfig.ITEM_LIMIT)));
         long offset = StringUtil.parseLong(request.queryParamOrDefault("offset", "0"));
         QueryUtil.checkLimitAndOffset(limit, offset);
         // Queue cache update
-        QueryLimitedOffsetRequest queryLimitedOffsetRequest = new QueryLimitedOffsetRequest(query, limit, offset);
-        Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_SEARCH, queryLimitedOffsetRequest);
+        if (QueryUtil.shouldRequestCache(request)) {
+            QueryLimitedOffsetRequest queryLimitedOffsetRequest = new QueryLimitedOffsetRequest(query, limit, offset);
+            Avocado.queue.cacheRequest(MessageQueue.TYPE.GET_SEARCH, queryLimitedOffsetRequest);
+        }
         // Fetch from cache
         String cacheId = ApiCache.createKey("search", query, limit, offset);
         String cachedData = Avocado.cache.get(cacheId);

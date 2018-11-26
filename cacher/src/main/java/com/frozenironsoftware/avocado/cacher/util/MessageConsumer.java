@@ -30,11 +30,12 @@ public class MessageConsumer extends DefaultConsumer implements ShutdownListener
             throws IOException {
         if (!envelope.getRoutingKey().equals(queue.getRoutingKey())) {
             if (queue.connect() && queue.getChannel() != null) {
-                queue.getChannel().basicNack(envelope.getDeliveryTag(), false, true);
+                queue.getChannel().basicNack(envelope.getDeliveryTag(), false, false);
             }
             return;
         }
         if (properties.getContentType() != null && body != null) {
+            // TODO Thread this
             try {
                 MessageQueue.TYPE type = MessageQueue.TYPE.valueOf(properties.getContentType());
                 Logger.extra("Message Consumer received: %s", type.name());

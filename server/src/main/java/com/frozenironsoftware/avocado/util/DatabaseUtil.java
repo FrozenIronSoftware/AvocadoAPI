@@ -68,11 +68,8 @@ public class DatabaseUtil {
      * Try to fetch a connection
      * @return sql2o connection
      */
-    private static Connection getConnection() {
-        while (connections >= MAX_CONNECTIONS)
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ignore) {}
+    public static Connection getConnection() {
+        waitForFreeConnection();
         Connection connection = sql2o.open();
         connections++;
         return connection;
@@ -83,12 +80,26 @@ public class DatabaseUtil {
      * @return sql2o connection
      */
     public static Connection getTransaction() {
-        while (connections >= MAX_CONNECTIONS)
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ignore) {}
+        waitForFreeConnection();
         Connection connection = sql2o.beginTransaction();
         connections++;
         return connection;
+    }
+
+    /**
+     * Wait until there is a available connection
+     */
+    private static void waitForFreeConnection() {
+        long startTime = System.currentTimeMillis();
+        while (connections >= MAX_CONNECTIONS) {
+            if (System.currentTimeMillis() - startTime > 10000) {
+                Logger.warn("Potential database connection deadlock");
+                startTime = System.currentTimeMillis();
+            }
+            try {
+                Thread.sleep(100);
+            }
+            catch (InterruptedException ignore) {}
+        }
     }
 }

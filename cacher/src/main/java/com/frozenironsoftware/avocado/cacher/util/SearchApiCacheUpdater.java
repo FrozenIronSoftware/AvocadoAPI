@@ -26,6 +26,8 @@ class SearchApiCacheUpdater {
         if (!PodcastApiCacheUpdater.checkLimitAndOffset(queryLimitedOffsetRequest.getLimit(),
                 queryLimitedOffsetRequest.getOffset()))
             return;
+        if (queryLimitedOffsetRequest.getQuery() == null || queryLimitedOffsetRequest.getQuery().isEmpty())
+            return;
         // Forward the request to the fetcher
         Cacher.queue.cacheRequest(MessageQueue.TYPE.FETCH_PODCASTS, queryLimitedOffsetRequest,
                 MessageQueue.ROUTING_KEY_POD_CACHER);
@@ -52,8 +54,9 @@ class SearchApiCacheUpdater {
         List<Podcast> podcastsHalfWordMatch = new ArrayList<>();
         try {
             connection = DatabaseUtil.getTransaction();
-            try (ResultSetIterable<Podcast> databasePodcasts =
-                         connection.createQuery(sql).executeAndFetchLazy(Podcast.class)) {
+            try (ResultSetIterable<Podcast> databasePodcasts = connection.createQuery(sql)
+                    .setColumnMappings(Podcast.getColumnMapings())
+                    .executeAndFetchLazy(Podcast.class)) {
                 for (Podcast podcast : databasePodcasts) {
                     if (podcast.getTitle() != null) {
                         // Start

@@ -2,7 +2,11 @@ package com.frozenironsoftware.avocado.data.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Podcast {
+    private static final Map<String, String> COLUMN_MAPPINGS;
     private long id;
     private String title;
     private String image;
@@ -12,7 +16,28 @@ public class Podcast {
     private int unplayedEpisodes;
     private int episodes;
     private String author;
+    @SerializedName("is_placeholder")
     private boolean isPlaceholder = false;
+    @SerializedName("itunes_id")
+    private long itunesId;
+    @SerializedName("feed_url")
+    private String feedUrl;
+    private String genre;
+
+    static {
+        Map<String, String> map = new HashMap<>();
+        map.put("itunes_id", "itunesId");
+        map.put("feed_url", "feedUrl");
+        COLUMN_MAPPINGS = map;
+    }
+
+    /**
+     * Get SQL column mappings
+     * @return column mappings
+     */
+    public static Map<String, String> getColumnMapings() {
+        return COLUMN_MAPPINGS;
+    }
 
     public long getId() {
         return id;
@@ -84,5 +109,29 @@ public class Podcast {
 
     public void setPlaceholder(boolean placeholder) {
         isPlaceholder = placeholder;
+    }
+
+    public long getItunesId() {
+        return itunesId;
+    }
+
+    public void setItunesId(long itunesId) {
+        this.itunesId = itunesId;
+    }
+
+    public String getFeedUrl() {
+        return feedUrl;
+    }
+
+    public void setFeedUrl(String feedUrl) {
+        this.feedUrl = feedUrl;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
     }
 }

@@ -36,7 +36,8 @@ public class ApiCache {
     public static final int TIMEOUT_HOUR = 60 * 60;
     public static final int TIMEOUT_DAY = 24 * 60 * 60; // 1 Day
     private static final int TIMEOUT = TIMEOUT_HOUR * 12; // Seconds before a cache value should be considered invalid
-    public static final String PREFIX_PODCAST = "_p";
+    public static final String PREFIX_PODCAST = "_p_";
+    public static final String KEY_QUERY_HISTORY = "_qh_";
     private final String redisPassword;
     private final Gson gson;
     private JedisPool redisPool;
@@ -117,7 +118,7 @@ public class ApiCache {
         return value;
     }
 
-    private Jedis getAuthenticatedJedis() {
+    public Jedis getAuthenticatedJedis() {
         Jedis jedis = redisPool.getResource();
         if (!redisPassword.isEmpty())
         jedis.auth(redisPassword);

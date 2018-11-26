@@ -2,16 +2,37 @@ package com.frozenironsoftware.avocado.data.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class PodcastPlay {
     private long id;
     @SerializedName("user_id")
     private long userId;
     @SerializedName("podacst_id")
     private long podcastId;
-    @SerializedName("episode_id")
-    private long episodeId;
+    @SerializedName("episode_guid")
+    private String episodeGuid;
     private int position;
     private int progress;
+
+    private static final Map<String, String> COLUMN_MAPPINGS;
+
+    static {
+        Map<String, String> map = new HashMap<>();
+        map.put("user_id", "userId");
+        map.put("podcast_id", "podcastId");
+        map.put("episode_guid", "episodeGuid");
+        COLUMN_MAPPINGS = map;
+    }
+
+    /**
+     * Get SQL column mappings
+     * @return column mappings
+     */
+    public static Map<String, String> getColumnMapings() {
+        return COLUMN_MAPPINGS;
+    }
 
     public long getId() {
         return id;
@@ -37,12 +58,12 @@ public class PodcastPlay {
         this.podcastId = podcastId;
     }
 
-    public long getEpisodeId() {
-        return episodeId;
+    public String getEpisodeGuid() {
+        return episodeGuid;
     }
 
-    public void setEpisodeId(long episodeId) {
-        this.episodeId = episodeId;
+    public void setEpisodeGuid(String episodeGuid) {
+        this.episodeGuid = episodeGuid;
     }
 
     public int getPosition() {

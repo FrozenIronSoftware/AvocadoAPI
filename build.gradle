@@ -35,13 +35,17 @@ allprojects {
         rabbitmqVersion = "5.4.2"
         junitVersion = "4.12"
         envKeystoreVersion = "1.0.7"
+        podEngineVersion = "2.2"
     }
 
     repositories {
+        jcenter()
         maven {
             url "https://dl.bintray.com/frozenironsoftware/Maven"
         }
-        jcenter()
+        maven {
+            url 'https://maven.icosillion.com/artifactory/open-source/'
+        }
     }
 }
 
@@ -67,5 +71,6 @@ project(":server") {
 project(":cacher") {
     dependencies {
         compile project(":server")
+        compile "com.icosillion.podengine:podengine:$podEngineVersion"
     }
 }
