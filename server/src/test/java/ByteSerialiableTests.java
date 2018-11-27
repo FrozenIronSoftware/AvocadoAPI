@@ -1,6 +1,8 @@
 import com.frozenironsoftware.avocado.data.SortOrder;
 import com.frozenironsoftware.avocado.data.model.bytes.EpisodesRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.LongRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.QueryLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
 import org.junit.Test;
@@ -18,6 +20,7 @@ public class ByteSerialiableTests {
             Arrays.asList("ONE", "TWO", "", "THREE", ".", "FOUR", "\uD83D\uDE42");
     private static final long ID = 2;
     private static final SortOrder SORT_ORDER = SortOrder.DESC;
+    private static final String QUERY = "testing";
 
     @Test
     public void testLimitedOffsetRequest() {
@@ -57,5 +60,23 @@ public class ByteSerialiableTests {
         assertEquals(reconstructed.getOffset(), OFFSET);
         assertEquals(reconstructed.getPodcastId(), ID);
         assertEquals(reconstructed.getSortOrder(), SORT_ORDER);
+    }
+
+    @Test
+    public void testLongRequest() {
+        LongRequest longRequest = new LongRequest(ID);
+        byte[] bytes = longRequest.toBytes();
+        LongRequest reconstructed = new LongRequest(bytes);
+        assertEquals(reconstructed.getData(), ID);
+    }
+
+    @Test
+    public void testQueryLimitedOffsetRequest() {
+        QueryLimitedOffsetRequest queryLimitedOffsetRequest = new QueryLimitedOffsetRequest(QUERY, LIMIT, OFFSET);
+        byte[] bytes = queryLimitedOffsetRequest.toBytes();
+        QueryLimitedOffsetRequest reconstructed = new QueryLimitedOffsetRequest(bytes);
+        assertEquals(reconstructed.getLimit(), LIMIT);
+        assertEquals(reconstructed.getOffset(), OFFSET);
+        assertEquals(reconstructed.getQuery(), QUERY);
     }
 }
