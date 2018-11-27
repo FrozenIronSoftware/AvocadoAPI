@@ -2,6 +2,7 @@ package com.frozenironsoftware.avocado.cacher.util;
 
 import com.frozenironsoftware.avocado.data.model.bytes.EpisodesRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.LimitedOffsetRequest;
+import com.frozenironsoftware.avocado.data.model.bytes.LongRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.QueryLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.StringArrayRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.UserIdLimitedOffsetRequest;
@@ -60,6 +61,9 @@ public class MessageConsumer extends DefaultConsumer implements ShutdownListener
                         break;
                     case FETCH_PODCASTS:
                         PodcastFetcher.fetchForQuery(new QueryLimitedOffsetRequest(body));
+                        break;
+                    case UPDATE_PODCAST:
+                        PodcastFetcher.updatePodcast(new LongRequest(body));
                         break;
                     default:
                         Logger.warn("Unhandled message: %s", type.name());

@@ -3,6 +3,7 @@ package com.frozenironsoftware.avocado.cacher;
 import com.frozenironsoftware.avocado.Avocado;
 import com.frozenironsoftware.avocado.cacher.data.Constants;
 import com.frozenironsoftware.avocado.cacher.util.MessageConsumer;
+import com.frozenironsoftware.avocado.cacher.util.UpdateRequester;
 import com.frozenironsoftware.avocado.util.ApiCache;
 import com.frozenironsoftware.avocado.util.DatabaseUtil;
 import com.frozenironsoftware.avocado.util.Logger;
@@ -36,17 +37,35 @@ public class Cacher {
                 Logger.info("Running as a podcast cache worker");
                 routingKey = MessageQueue.ROUTING_KEY_POD_CACHER;
             }
+            else if (args[0].equalsIgnoreCase("--update") || args[0].equalsIgnoreCase("-u")) {
+                Logger.info("Running as a podcast update requester worker");
+                startUpdateRequester(mqServer);
+                return;
+            }
         }
         // Start
-        MessageQueue messageQueue = new MessageQueue(mqServer, routingKey);
-        while (messageQueue.getChannel() == null) {
-            Logger.warn("Failed to connect to message queue. Retrying in 5 seconds");
-            messageQueue.connect();
-            try {
-                Thread.sleep(5000);
-            }
-            catch (InterruptedException ignore) {}
-        }
+        startMessageConsumer(mqServer, routingKey);
+    }
+
+    /**
+     * Start the update requester
+     * @param mqServer MQ server URL
+     */
+    private static void startUpdateRequester(String mqServer) {
+        MessageQueue messageQueue = MessageQueue.createRetry(mqServer);
+        queue = messageQueue;
+        UpdateRequester updateRequester = new UpdateRequester(messageQueue);
+        updateRequester.checkDatabaseAndRequestOutdated();
+        messageQueue.close();
+    }
+
+    /**
+     * Start the message consumer loop
+     * @param mqServer MQ server url
+     * @param routingKey MQ routing key
+     */
+    private static void startMessageConsumer(String mqServer, String routingKey) {
+        MessageQueue messageQueue = MessageQueue.createRetry(mqServer, routingKey);
         queue = messageQueue;
         MessageConsumer messageConsumer = new MessageConsumer(messageQueue);
     }

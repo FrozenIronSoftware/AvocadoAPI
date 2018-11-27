@@ -5,6 +5,7 @@ import com.frozenironsoftware.avocado.cacher.Cacher;
 import com.frozenironsoftware.avocado.data.ItunesGenre;
 import com.frozenironsoftware.avocado.data.model.Episode;
 import com.frozenironsoftware.avocado.data.model.Podcast;
+import com.frozenironsoftware.avocado.data.model.bytes.LongRequest;
 import com.frozenironsoftware.avocado.data.model.bytes.QueryLimitedOffsetRequest;
 import com.frozenironsoftware.avocado.data.model.itunes.ItunesPodcast;
 import com.frozenironsoftware.avocado.data.model.itunes.ItunesSearch;
@@ -118,8 +119,12 @@ public class PodcastFetcher {
         List<Podcast> podcasts = PodcastDatabaseUtil.getPodcastFromDatabase(Collections.singletonList(id));
         if (podcasts == null || podcasts.size() != 1)
             return;
-        Podcast podcast = podcasts.get(0); // TODO add last update time to database and check it
+        Podcast podcast = podcasts.get(0);
+        if (podcast.getLastUpdate() != null &&
+                System.currentTimeMillis() - podcast.getLastUpdate().getTime() < UpdateRequester.TIME_DAY)
+            return;
         try {
+            setPodcastUpdateTime(id, System.currentTimeMillis());
             com.icosillion.podengine.models.Podcast feed =
                     new com.icosillion.podengine.models.Podcast(new URL(podcast.getFeedUrl()));
             try {
@@ -130,6 +135,30 @@ public class PodcastFetcher {
         }
         catch (MalformedFeedException | MalformedURLException | InvalidFeedException | WebbException e) {
             Logger.exception(e);
+        }
+    }
+
+    /**
+     * Set a podcasts last update time
+     * @param id Avocado podcast id
+     * @param timeMillis timestamp
+     */
+    private static void setPodcastUpdateTime(long id, long timeMillis) {
+        Timestamp timestamp = new Timestamp(timeMillis);
+        String sql = "update %s.podcasts set last_update = :last_update where id = :podcast_id;";
+        sql = String.format(sql, DatabaseUtil.schema);
+        Connection connection = null;
+        try {
+            connection = DatabaseUtil.getConnection();
+            connection.createQuery(sql)
+                    .addParameter("last_update", timestamp)
+                    .addParameter("podcast_id", id)
+                    .executeUpdate();
+            DatabaseUtil.releaseConnection(connection);
+        }
+        catch (Exception e) {
+            Logger.exception(e);
+            DatabaseUtil.releaseConnection(connection);
         }
     }
 
@@ -183,7 +212,8 @@ public class PodcastFetcher {
                     catch (MalformedFeedException ignore) {}
                     Timestamp dateReleased = null;
                     try {
-                        dateReleased = Timestamp.from(episode.getPubDate().toInstant());
+                        if (episode.getPubDate() != null)
+                            dateReleased = Timestamp.from(episode.getPubDate().toInstant());
                     }
                     catch (DateFormatException ignore) {}
                     if (episode.getEnclosure() == null || episode.getEnclosure().getURL() == null)
@@ -417,5 +447,13 @@ public class PodcastFetcher {
             Logger.exception(e);
             return null;
         }
+    }
+
+    /**
+     * Handle an update podcast request
+     * @param longRequest podcast id
+     */
+    static void updatePodcast(@NotNull LongRequest longRequest) {
+        updatePodcastInfo(longRequest.getData());
     }
 }

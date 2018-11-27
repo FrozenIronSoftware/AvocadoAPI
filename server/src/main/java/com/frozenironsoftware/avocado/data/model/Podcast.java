@@ -2,6 +2,7 @@ package com.frozenironsoftware.avocado.data.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,11 +24,14 @@ public class Podcast {
     @SerializedName("feed_url")
     private String feedUrl;
     private String genre;
+    @SerializedName("last_update")
+    private Timestamp lastUpdate;
 
     static {
         Map<String, String> map = new HashMap<>();
         map.put("itunes_id", "itunesId");
         map.put("feed_url", "feedUrl");
+        map.put("last_update", "lastUpdate");
         COLUMN_MAPPINGS = map;
     }
 
@@ -133,5 +137,13 @@ public class Podcast {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public Timestamp getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(Timestamp lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 }

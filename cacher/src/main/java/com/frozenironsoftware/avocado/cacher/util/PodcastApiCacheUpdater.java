@@ -377,11 +377,11 @@ class PodcastApiCacheUpdater {
                 DatabaseUtil.releaseConnection(connection);
                 return episodes;
             }
-            List<Long> episodeIds = new ArrayList<>();
+            List<String> episodeGuids = new ArrayList<>();
             for (int episodeIndex = 1; episodeIndex <= episodes.size(); episodeIndex++) {
-                long episodeIdLoop = episodes.get(episodeIndex - 1).getEpisodeId();
-                episodeIds.add(episodeIdLoop);
-                sqlGetPlays.append("episode_id = :p").append(episodeIndex);
+                String episodeGuidLoop = episodes.get(episodeIndex - 1).getGuid();
+                episodeGuids.add(episodeGuidLoop);
+                sqlGetPlays.append("episode_guid = :p").append(episodeIndex);
                 if (episodeIndex < episodes.size()) {
                     sqlGetPlays.append(" or ");
                 }
@@ -390,7 +390,7 @@ class PodcastApiCacheUpdater {
                 }
             }
             List<PodcastPlay> plays = connection.createQuery(String.format(sqlGetPlays.toString(), DatabaseUtil.schema))
-                    .withParams(episodeIds.toArray())
+                    .withParams(episodeGuids.toArray())
                     .addParameter("podcast_id", podcastId)
                     .addParameter("user_id", userId)
                     .setColumnMappings(PodcastPlay.getColumnMapings())

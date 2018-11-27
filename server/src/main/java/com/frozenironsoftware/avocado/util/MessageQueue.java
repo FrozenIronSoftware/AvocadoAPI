@@ -44,8 +44,40 @@ public class MessageQueue {
         connect();
     }
 
+    /**
+     * @see MessageQueue#MessageQueue(String, String)
+     * @param url connection url
+     */
     public MessageQueue(String url) {
         this(url, null);
+    }
+
+    /**
+     * Create a connection queue, attempting to connect and retrying until a connection is established
+     * @param mqServer connection url
+     * @param routingKey routing key
+     * @return message queue that has already been connected
+     */
+    public static MessageQueue createRetry(String mqServer, String routingKey) {
+        MessageQueue messageQueue = new MessageQueue(mqServer, routingKey);
+        while (messageQueue.getChannel() == null) {
+            Logger.warn("Failed to connect to message queue. Retrying in 5 seconds");
+            messageQueue.connect();
+            try {
+                Thread.sleep(5000);
+            }
+            catch (InterruptedException ignore) {}
+        }
+        return messageQueue;
+    }
+
+    /**
+     * @see MessageQueue#createRetry(String, String)
+     * @param mqServer connection string
+     * @return message queue that has already been connected
+     */
+    public static MessageQueue createRetry(String mqServer) {
+        return createRetry(mqServer, null);
     }
 
     /**
@@ -177,8 +209,19 @@ public class MessageQueue {
         return routingKey;
     }
 
+    public void close() {
+        if (channel != null && channel.isOpen()) {
+            try {
+                channel.getConnection().close();
+            }
+            catch (IOException e) {
+                Logger.exception(e);
+            }
+        }
+    }
+
     public enum TYPE {
         GET_FAVORITE_PODCASTS, GET_RECENT_PODCASTS, GET_POPULAR_PODCASTS, GET_EPISODES, GET_PODCASTS, FETCH_PODCASTS,
-        GET_SEARCH
+        UPDATE_PODCAST, GET_SEARCH
     }
 }
