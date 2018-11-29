@@ -1,11 +1,10 @@
 # Avocado
 
-Roku podcast app
+iTunes podcast cacher and management API
 
-# Installing/Running
+The goal of this project was to create a podcast cacher and management system API.
 
-This web applet is powered by the Gradle build system and designed to
- run on Heroku.
+Licensed under the GPLv2.
  
 ## Building
 
@@ -15,7 +14,41 @@ This web applet is powered by the Gradle build system and designed to
 ./gradlew jar
 ```
 
-The output will be at: `./build/libs/avocado-*.jar`.
+The output will be at: `./server/build/libs/avocado-*.jar` and `./cacher/build/libs/cacher-*.jar`.
+
+## Running
+
+Avocado expects to connect to a Redis server, RabbitMQ server, and PostgreSQL server. The connections URLs can be 
+ specified through environment variables.
+ 
+The SQL database schema has been dumped to `avocado.sql`.
+
+The API endpoints have been documented at `avocado_api.pdf`
+
+### Main
+
+The main app can be launched without any arguments. This app does not handle requests. It checks the Redis cache and
+ forwards a request to the API cacher. If a request has not been cached an empty 218 response will be sent. This 
+ indicates that the cacher has not cached the request yet.
+
+### Cacher
+
+The cacher can operate in 3 different modes.
+
+The first is the API cacher. In this mode all requests made to the front end will be handled and cached to Redis. The
+ frontend then serves the Redis cache.
+ 
+`--podcast`
+
+Launching with the --podcast argument will cause the cacher to only cache podcast searches. The query will be forwarded
+ to iTunes, parsed and any missing podcasts will be added to the database. New podcasts then have their episodes
+ updated in the database.
+ 
+`--update`
+
+Launching with the --update argument will cause the cacher to check the `last_update` timestamp on all podcasts and 
+ request the podcast cacher to update the episode and metadata of podcasts that have not been updated for one day or
+ more. This process does not run continuously and is meant to be executed as a cron job.
  
 ## Environment Variables
 
